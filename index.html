@@ -87,6 +87,25 @@ kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;bo
   .wrap{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
   .quick{grid-template-columns:repeat(2,1fr)}
 }
+.teaser .tz-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.teaser h3{margin:0;font-size:16px}
+.tz-all{white-space:nowrap;font-size:14px}
+.tz-body{display:flex;gap:14px;align-items:center;margin-top:10px}
+.tz-ic{font-size:40px}
+.tz-info{flex:1;min-width:0}
+.tz-info .n{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em}
+.tz-info .t{font-weight:700;font-size:16px}
+.tz-info .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.tz-acts{display:flex;gap:8px;margin-top:12px}
+.tz-acts .btn{flex:1}
+.onlymob{display:none}
+@media(max-width:700px){
+  .onlymob{display:inline}.onlydesk{display:none}
+  .top{gap:8px;margin-bottom:12px}
+  .stats{flex-wrap:nowrap;gap:6px;width:100%}
+  .stat{padding:5px 9px;font-size:13px;flex:1;text-align:center}
+  .slab{display:none}
+}
 /* new modes */
 .sent{font-size:clamp(22px,4.5vw,30px);line-height:1.7;max-width:680px}
 .blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--red);color:transparent;margin:0 2px}
@@ -2846,6 +2865,22 @@ const TAB_SCREENS=[['home','🏠','Сегодня'],['levels','📚','Уровн
 function tabbarHTML(){
   return `<nav class="tabbar">${TAB_SCREENS.map(([s,ic,lab])=>`<button class="tbtn ${screen===s?'on':''}" onclick="openScreen('${s}')"><span class="tic">${ic}${s==='settings'&&syncBadge()?`<i class="tbadge">${sync.status==='err'?'!':'☁'}</i>`:''}</span><span class="tlab">${lab}</span></button>`).join('')}</nav>`;
 }
+function levelsTeaserHTML(){
+  let rec=LEVELS.findIndex(l=>!(store.levels[l.id]&&store.levels[l.id].best>=2));if(rec<0)rec=0;
+  const l=LEVELS[rec];const sd=l.words.filter(isStarted).length;const best=(store.levels[l.id]||{}).best||0;
+  const started=Object.keys(store.levels).some(k=>/^\d+$/.test(k));
+  return `<div class="panel teaser">
+    <div class="tz-head"><h3>📚 ${started?'Продолжить уровни':'Начните с уровней'}</h3><button class="linkbtn tz-all" onclick="openScreen('levels')">Все уровни →</button></div>
+    <div class="tz-body">
+      <div class="tz-ic">${l.i}</div>
+      <div class="tz-info"><div class="n">УРОВЕНЬ ${l.id+1}</div><div class="t">${l.t} <span class="hz" style="color:var(--red)">${l.z}</span></div>
+        <div class="bar"><i style="width:${levelProgress(l)*100}%"></i></div>
+        <div class="meta"><span>${sd?`${sd}/${l.words.length} слов изучается`:'12 новых слов'}</span>${stars(best)}</div></div>
+    </div>
+    <div class="tz-acts"><button class="btn ghost" onclick="startStudy(${l.id})">📖 Карточки</button><button class="btn" onclick="startLevelQuiz(${l.id})">🎯 Тест</button></div>
+    <div class="note">Карточки и тесты по темам теперь живут во вкладке <b>«📚 Уровни»</b> ${'<span class="onlymob">внизу экрана</span><span class="onlydesk">вверху</span>'}.</div>
+  </div>`;
+}
 function renderHome(){
   const mastered=ALL.filter(isMastered).length;
   const due=dueWords();
@@ -2854,14 +2889,15 @@ function renderHome(){
   <div class="top">
     <div class="brand"><div class="seal hz">汉</div><div><h1>汉字卡片 · Карточки</h1><p>Лексика HSK 4–5 · ${LEVELS.length} уровня · ${ALL.length} слов</p></div></div>
     <div class="stats">
-      <span class="stat">✏️ Изучается <b>${ALL.filter(isStarted).length}</b></span>
-      <span class="stat">📚 Выучено <b>${mastered}</b>/${ALL.length}</span>
-      <span class="stat">⭐ <b>${store.xp}</b> XP</span>
-      <span class="stat">🔥 <b>${currentStreak()}</b> дн.</span>
+      <span class="stat" title="Изучается">✏️ <span class="slab">Изучается </span><b>${ALL.filter(isStarted).length}</b></span>
+      <span class="stat" title="Выучено">📚 <span class="slab">Выучено </span><b>${mastered}</b><span class="slab">/${ALL.length}</span></span>
+      <span class="stat" title="Опыт">⭐ <b>${store.xp}</b> XP</span>
+      <span class="stat" title="Дней подряд">🔥 <b>${currentStreak()}</b> дн.</span>
     </div>
   </div>
   ${!storageOK?'<div class="note" style="color:var(--bad);margin-bottom:12px">⚠️ Этот браузер не сохраняет прогресс — подробности в настройках.</div>':''}
   ${dailyHTML()}
+  ${levelsTeaserHTML()}
   <div class="panel review">
     <div><h3>🔁 Повторение</h3><p>${due.length?`Пора повторить слов: <b>${due.length}</b>. Ошибки возвращаются сразу, выученные слова — через 1, 3, 7, 14, 30 дней.`:'Сейчас повторять нечего. Пройдите уровень — слова попадут в интервальное повторение.'}</p></div>
     <button class="btn" ${due.length?'':'disabled'} onclick="startReview()">Повторить${due.length?' ('+Math.min(due.length,20)+')':''}</button>
