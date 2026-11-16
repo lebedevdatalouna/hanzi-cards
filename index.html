@@ -48,6 +48,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn.ghost:hover{background:#f1e9dc}
 .btn.small{padding:7px 12px;font-size:13px}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
+.inp{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0 12px}
 .tab{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px}
 .tab b{font-size:15px}.tab span{font-size:12px;color:var(--muted)}
@@ -2231,6 +2232,72 @@ function todayStr(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)
 function bumpStreak(){const t=todayStr();if(store.streak.last===t)return;const y=new Date(Date.now()-DAY);store.streak.count=store.streak.last===todayStr(y)?store.streak.count+1:1;store.streak.last=t;save();}
 function currentStreak(){const t=todayStr(),y=todayStr(new Date(Date.now()-DAY));return (store.streak.last===t||store.streak.last===y)?store.streak.count:0}
 
+/* ================== СИНХРОНИЗАЦИЯ (Cloudflare Worker + KV) ==================
+   Прогресс хранится под ключом SHA-256 от «секретного имени» игрока.
+   При синхронизации локальная и облачная версии сливаются: по каждому слову
+   берётся запись с большим числом ответов, по уровням — лучший результат. */
+const SYNC_URL='https://hanzi-sync.lebedev-s.workers.dev/p/';
+const SYNC_LS='hanzi-cards-sync-v1';
+let sync={name:'',key:'',last:0,status:'off',msg:''};
+try{const t=JSON.parse(localStorage.getItem(SYNC_LS)||'null');if(t)sync=Object.assign(sync,t,{status:t.key?'idle':'off',msg:''})}catch(e){}
+function saveSync(){try{localStorage.setItem(SYNC_LS,JSON.stringify({name:sync.name,key:sync.key,last:sync.last}))}catch(e){}}
+async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function mergeStores(a,b){
+  if(!b||typeof b!=='object')return a;
+  const m={...a,srs:{...(a.srs||{})},levels:{...(a.levels||{})},daily:{...(a.daily||{})}};
+  for(const [k,r] of Object.entries(b.srs||{})){const l=m.srs[k];
+    if(!l||(r.c+r.x)>(l.c+l.x)||((r.c+r.x)===(l.c+l.x)&&r.b>l.b))m.srs[k]=r;}
+  for(const [k,r] of Object.entries(b.levels||{})){const l=m.levels[k]||{best:0,acc:0};m.levels[k]={best:Math.max(l.best||0,r.best||0),acc:Math.max(l.acc||0,r.acc||0)};}
+  for(const [k,r] of Object.entries(b.daily||{})){const l=m.daily[k];m.daily[k]={acc:Math.max(l?l.acc:0,r.acc||0)};}
+  m.xp=Math.max(a.xp||0,b.xp||0);
+  const sa=a.streak||{},sb=b.streak||{};
+  const later=(x,y)=>(x.last&&y.last)?(new Date(x.last.replace(/-(\d)(?!\d)/g,'-0$1'))>=new Date(y.last.replace(/-(\d)(?!\d)/g,'-0$1'))):!!x.last;
+  m.streak=(sa.last===sb.last)?{last:sa.last,count:Math.max(sa.count||0,sb.count||0)}:(later(sa,sb)?sa:sb);
+  m.settings=a.settings;
+  return m;
+}
+let syncBusy=false,syncAgain=false;
+async function syncNow(){
+  if(!sync.key||!SYNC_OK)return;
+  if(syncBusy){syncAgain=true;return}
+  syncBusy=true;sync.status='busy';sync.msg='';if(screen==='home')render();
+  try{
+    const r=await fetch(SYNC_URL+sync.key,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const remote=await r.json();
+    store=mergeStores(store,remote);save();
+    const payload={...store,settings:undefined,updatedAt:Date.now()};
+    const w=await fetch(SYNC_URL+sync.key,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!w.ok)throw new Error('HTTP '+w.status);
+    sync.last=Date.now();sync.status='ok';saveSync();
+  }catch(e){sync.status='err';sync.msg='нет связи с сервером — прогресс сохранён на устройстве и отправится позже'}
+  syncBusy=false;
+  if(screen==='home')render();
+  if(syncAgain){syncAgain=false;syncNow()}
+}
+async function connectSync(){
+  const inp=document.getElementById('syncName');const name=(inp&&inp.value||'').trim();
+  if(name.length<6){sync.msg='Имя должно быть не короче 6 символов';render();return}
+  sync.name=name;sync.key=await sha256('hanzi-cards:'+name.toLowerCase());saveSync();
+  await syncNow();
+}
+function disconnectSync(){sync={name:'',key:'',last:0,status:'off',msg:''};saveSync();render()}
+const SYNC_OK=/github\.io$|^127\.0\.0\.1$|^localhost$/.test(location.hostname);
+function syncHTML(){
+  if(!SYNC_OK)return '';
+  if(!sync.key)return `<div class="panel">
+    <div class="review"><div><h3>☁️ Синхронизация между устройствами</h3>
+    <p>Придумайте секретное имя (например, <i>тигрица-4821</i>) и введите его же на телефоне и ноутбуке — прогресс будет общим. Любой, кто знает имя, увидит прогресс, поэтому лучше добавить цифры.</p></div></div>
+    <div class="row" style="margin-top:10px;gap:8px"><input id="syncName" class="inp" placeholder="секретное имя" autocomplete="off" onkeydown="if(event.key==='Enter')connectSync()"><button class="btn" onclick="connectSync()">Подключить</button></div>
+    ${sync.msg?`<div class="note" style="color:var(--bad)">${sync.msg}</div>`:''}
+  </div>`;
+  const t=sync.last?new Date(sync.last).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'—';
+  const st={busy:'⏳ синхронизация…',ok:'✓ синхронизировано в '+t,err:'⚠️ '+sync.msg,idle:sync.last?'последняя синхронизация в '+t:'ещё не синхронизировано'}[sync.status]||'';
+  return `<div class="panel review"><div><h3>☁️ Синхронизация: <span class="hz">${sync.name.replace(/[<>&"]/g,'')}</span></h3><p style="${sync.status==='err'?'color:var(--bad)':''}">${st}</p></div>
+    <div class="row" style="gap:8px"><button class="btn ghost small" onclick="syncNow()" ${sync.status==='busy'?'disabled':''}>Синхронизировать</button><button class="btn ghost small" onclick="disconnectSync()">Отключить</button></div></div>`;
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&sync.key&&Date.now()-sync.last>60000)syncNow()});
+
 /* ================== ТРЕНИРОВКА ДНЯ ==================
    10 новых слов в день — одинаковые для всех (порядок задан фиксированным зерном),
    плюс до 10 личных слов на повторение. За 58 дней проходится весь словарь. */
@@ -2287,6 +2354,7 @@ function renderHome(){
   </div>
 
   ${dailyHTML()}
+  ${syncHTML()}
   <div class="panel review">
     <div><h3>🔁 Повторение</h3><p>${due.length?`Пора повторить слов: <b>${due.length}</b>. Ошибки возвращаются сразу, выученные слова — через 1, 3, 7, 14, 30 дней.`:'Сейчас повторять нечего. Пройдите уровень — слова попадут в интервальное повторение.'}</p></div>
     <button class="btn" ${due.length?'':'disabled'} onclick="startReview()">Повторить${due.length?' ('+Math.min(due.length,20)+')':''}</button>
@@ -2473,6 +2541,7 @@ function finish(){
   if(Q.daily){const t=todayStr(),prev=store.daily[t];store.daily[t]={acc:Math.max(acc,prev?prev.acc:0)};}
   store.xp+=Q.xp;bumpStreak();save();
   Q.result={acc,st,firstOk};screen='result';render();window.scrollTo(0,0);
+  if(sync.key)syncNow();
 }
 function renderResult(){
   const r=Q.result;const lid=Q.levelId;
@@ -2522,6 +2591,7 @@ document.addEventListener('keydown',e=>{
 });
 
 render();
+if(sync.key)syncNow();
 </script>
 </body>
 </html>
