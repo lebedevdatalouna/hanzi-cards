@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>汉字卡片 · Карточки HSK 4–5</title>
+<style>
+:root{
+  --bg:#f6f1e8;--card:#fffdf8;--ink:#2a2420;--muted:#8a7e72;--line:#e7ddcd;
+  --red:#c63a2f;--red-d:#a32c22;--good:#2e8b57;--good-bg:#e5f4ea;--bad:#c63a2f;--bad-bg:#fbe7e4;--gold:#d79b1d;
+  --t1:#d0342c;--t2:#e08600;--t3:#2c9a4c;--t4:#2b6ad0;--t5:#9a9086;
+  --shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
+.hz{font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.seal{width:46px;height:46px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow)}
+.brand h1{font-size:20px;margin:0}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;white-space:nowrap}
+.stat b{font-variant-numeric:tabular-nums}
+/* panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.seg{display:inline-flex;background:#f1e9dc;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:8px;font-size:13px}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:14px;user-select:none;cursor:pointer}
+.sw{width:38px;height:22px;border-radius:999px;background:#d9cebd;position:relative;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on .sw{background:var(--red)}
+.toggle.on .sw::after{left:19px}
+.review{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.review h3{margin:0 0 2px;font-size:16px}
+.review p{margin:0;color:var(--muted);font-size:13px}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:600;background:var(--red);color:#fff;transition:.15s}
+.btn:hover{background:var(--red-d)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:#f1e9dc}
+.btn.small{padding:7px 12px;font-size:13px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+/* levels */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.lvl{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;transition:.15s;position:relative;box-shadow:var(--shadow)}
+.lvl:hover{transform:translateY(-2px);border-color:#d6c6ae}
+.lvl .n{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em}
+.lvl .ic{font-size:26px;position:absolute;right:12px;top:10px}
+.lvl .t{font-weight:700;margin-top:4px;font-size:15px;padding-right:32px}
+.lvl .z{color:var(--red);font-size:15px}
+.bar{height:6px;background:#efe6d8;border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:99px;transition:width .3s}
+.lvl .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}
+.stars{color:var(--gold);letter-spacing:1px}
+.stars .off{color:#dccfbb}
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(40,25,10,.35);display:grid;place-items:center;padding:16px;z-index:10}
+.sheet{background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.sheet h2{margin:0 0 2px}
+.sheet .words{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.chip{background:#f3ebde;border-radius:8px;padding:3px 8px;font-size:15px}
+.sheet .acts{display:grid;gap:8px}
+/* quiz */
+.qtop{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.qtop .bar{flex:1;margin:0;height:8px}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:7px 10px;font-size:14px}
+.iconbtn.on{background:var(--red);color:#fff;border-color:var(--red)}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 20px;box-shadow:var(--shadow);text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative}
+.qhint{position:absolute;top:12px;left:16px;font-size:12px;color:var(--muted)}
+.combo{position:absolute;top:12px;right:16px;font-size:13px;color:var(--gold);font-weight:700}
+.bighz{font-size:clamp(54px,12vw,92px);line-height:1.1}
+.py{font-size:20px;color:var(--muted);min-height:28px}
+.meaning{font-size:24px;font-weight:600}
+.meaning small,.opt small{display:block;font-size:.72em;font-weight:400;color:var(--muted)}
+.speak{border:0;background:var(--red);color:#fff;width:96px;height:96px;border-radius:50%;font-size:40px;box-shadow:0 8px 24px rgba(198,58,47,.35)}
+.speak:active{transform:scale(.96)}
+.subbtns{display:flex;gap:8px;justify-content:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:14px 14px 14px 46px;text-align:left;position:relative;min-height:62px;font-size:17px;transition:.12s}
+.opt:hover:not(:disabled){border-color:#cdb99b;background:#fffaf0}
+.opt .num{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:7px;background:#f1e9dc;font-size:12px;display:grid;place-items:center;color:var(--muted);font-weight:700}
+.opt.hzopt{font-size:28px}
+.opt.hzopt small{font-size:14px}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.reveal{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);animation:pop .2s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.rv-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rv-hz{font-size:44px}
+.rv-py{font-size:20px}
+.rv-m{font-size:16px}
+.rv-m .en{color:var(--muted)}
+.ex{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.ex .zh{font-size:20px}
+.ex .ru{color:var(--muted);font-size:14px;margin-top:2px}
+mark{background:#fde6b8;color:inherit;border-radius:4px;padding:0 2px}
+.verdict{font-weight:700;margin-bottom:8px}
+.verdict.ok{color:var(--good)}.verdict.no{color:var(--bad)}
+.nextrow{display:flex;justify-content:flex-end;margin-top:12px;gap:8px;align-items:center}
+.kbd{font-size:11px;color:var(--muted)}
+.t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
+/* study */
+.flash{perspective:1200px;margin:6px 0 14px}
+.flash-inner{position:relative;min-height:330px;transition:transform .45s;transform-style:preserve-3d;cursor:pointer}
+.flash.flipped .flash-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;gap:8px}
+.face.back{transform:rotateY(180deg)}
+.face .tap{position:absolute;bottom:12px;font-size:12px;color:var(--muted)}
+.ctrl{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+/* result */
+.result{text-align:center}
+.result .big{font-size:56px;margin:4px 0}
+.result .bigstars{font-size:40px;color:var(--gold);letter-spacing:4px}
+.result .bigstars .off{color:#dccfbb}
+.mlist{text-align:left;margin-top:12px}
+.mitem{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.mitem .hz{font-size:24px;min-width:70px}
+.mitem .info{flex:1;font-size:14px}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin-top:8px}
+.footer{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ================== СЛОВАРЬ ==================
+   Формат строки: иероглифы | пиньинь | русский | english | пример | перевод примера */
+const RAW = [
+{t:"Чувства и эмоции",z:"情绪",i:"😊",w:`
+激动|jīdòng|взволнованный|excited, thrilled|听到这个消息，她激动得哭了。|Услышав эту новость, она расплакалась от волнения.
+失望|shīwàng|разочарованный|disappointed|考试没通过，他很失望。|Он не сдал экзамен и очень разочарован.
+羡慕|xiànmù|завидовать (по-доброму)|to envy, to admire|我很羡慕你能去中国留学。|Я очень завидую, что ты можешь поехать учиться в Китай.
+害羞|hàixiū|стесняться, застенчивый|shy, bashful|她很害羞，不敢跟陌生人说话。|Она стеснительная и боится говорить с незнакомцами.
+烦恼|fánnǎo|огорчение, заботы|worries, vexation|每个人都有自己的烦恼。|У каждого свои заботы.
+感动|gǎndòng|тронутый, растроганный|moved, touched|这部电影让我非常感动。|Этот фильм меня очень тронул.
+后悔|hòuhuǐ|сожалеть|to regret|我后悔没早点儿学中文。|Жалею, что не начал учить китайский раньше.
+得意|déyì|довольный собой|pleased with oneself|他考了第一名，很得意。|Он занял первое место и очень доволен собой.
+紧张|jǐnzhāng|нервничать, напряжённый|nervous, tense|面试的时候我特别紧张。|На собеседовании я ужасно нервничал.
+委屈|wěiqu|чувствовать себя обиженным|to feel wronged|她觉得很委屈，哭了起来。|Она почувствовала себя несправедливо обиженной и заплакала.
+寂寞|jìmò|одинокий, тоскливый|lonely|一个人在国外有时候很寂寞。|Одному за границей иногда бывает одиноко.
+惊讶|jīngyà|удивлённый|surprised, amazed|他的中文水平让大家很惊讶。|Его уровень китайского всех удивил.
+`},
+{t:"Характер",z:"性格",i:"🧭",w:`
+勇敢|yǒnggǎn|смелый|brave|他勇敢地跳进水里救了孩子。|Он смело прыгнул в воду и спас ребёнка.
+诚实|chéngshí|честный|honest|做人要诚实。|Человек должен быть честным.
+骄傲|jiāo'ào|гордый; зазнаваться|proud, arrogant|取得了成绩也不要骄傲。|Даже добившись успеха, не зазнавайся.
+粗心|cūxīn|невнимательный, рассеянный|careless|我太粗心了，又把钥匙忘在家里了。|Я такой рассеянный — опять забыл ключи дома.
+耐心|nàixīn|терпение, терпеливый|patience, patient|老师对学生很有耐心。|Учитель очень терпелив к ученикам.
+幽默|yōumò|юмор, с юмором|humorous|他说话很幽默，大家都喜欢他。|Он говорит с юмором, все его любят.
+大方|dàfang|щедрый, непринуждённый|generous, easygoing|她很大方，经常请朋友吃饭。|Она щедрая, часто угощает друзей.
+懒|lǎn|ленивый|lazy|周末我太懒了，一整天都没出门。|На выходных я так ленился, что весь день не выходил из дома.
+善良|shànliáng|добрый, добросердечный|kind-hearted|她是一个很善良的人。|Она очень добрый человек.
+谦虚|qiānxū|скромный|modest|虽然他很优秀，但是非常谦虚。|Хотя он отличник, он очень скромный.
+固执|gùzhí|упрямый|stubborn|我爸爸很固执，从来不听别人的意见。|Мой папа упрямый, никогда не слушает чужого мнения.
+活泼|huópō|живой, бойкий|lively, vivacious|这个小女孩又活泼又可爱。|Эта девочка живая и милая.
+`},
+{t:"Отношения",z:"关系",i:"💞",w:`
+恋爱|liàn'ài|любовь; встречаться|romance; to date|他们谈恋爱已经三年了。|Они встречаются уже три года.
+结婚|jiéhūn|пожениться|to marry|我们打算明年结婚。|Мы собираемся пожениться в следующем году.
+吵架|chǎojià|ссориться|to quarrel|他们昨天吵架了，今天又和好了。|Вчера они поссорились, а сегодня помирились.
+原谅|yuánliàng|прощать|to forgive|请原谅我，我不是故意的。|Прости меня, я не нарочно.
+信任|xìnrèn|доверие, доверять|trust, to trust|朋友之间最重要的是信任。|Между друзьями главное — доверие.
+陪|péi|быть рядом, сопровождать|to accompany, keep company|周末我陪妈妈去买东西。|На выходных я сходил с мамой за покупками.
+关心|guānxīn|заботиться, беспокоиться о|to care about|谢谢你对我的关心。|Спасибо за твою заботу.
+约会|yuēhuì|свидание, встреча|date, appointment|今天晚上我有个约会。|Сегодня вечером у меня свидание.
+分手|fēnshǒu|расстаться|to break up|他们上个月分手了。|Они расстались в прошлом месяце.
+亲戚|qīnqi|родственники|relatives|春节的时候要去亲戚家拜年。|На Новый год ходят поздравлять родственников.
+邻居|línjū|сосед|neighbor|我的邻居很热情。|Мой сосед очень радушный.
+理解|lǐjiě|понимать|to understand|父母应该多理解孩子。|Родители должны больше понимать детей.
+`},
+{t:"Работа и карьера",z:"工作",i:"💼",w:`
+招聘|zhāopìn|набирать сотрудников|to recruit, to hire|这家公司正在招聘翻译。|Эта компания набирает переводчиков.
+应聘|yìngpìn|откликаться на вакансию|to apply for a job|我去那家公司应聘了。|Я откликнулся на вакансию в той компании.
+简历|jiǎnlì|резюме|résumé, CV|请把你的简历发到我的邮箱。|Пришлите, пожалуйста, резюме мне на почту.
+面试|miànshì|собеседование|job interview|明天上午我有一个面试。|Завтра утром у меня собеседование.
+工资|gōngzī|зарплата|salary, wages|这份工作工资不高，但是很有意思。|Зарплата на этой работе невысокая, но работа интересная.
+加班|jiābān|работать сверхурочно|to work overtime|这个星期我天天加班。|На этой неделе я каждый день перерабатываю.
+辞职|cízhí|уволиться (по собственному)|to resign, to quit|她辞职了，想自己开公司。|Она уволилась — хочет открыть свою компанию.
+经验|jīngyàn|опыт|experience|他有十年的工作经验。|У него десять лет опыта работы.
+同事|tóngshì|коллега|colleague|我和同事们关系很好。|У меня хорошие отношения с коллегами.
+任务|rènwu|задача, задание|task, assignment|这个任务必须今天完成。|Эту задачу нужно выполнить сегодня.
+负责|fùzé|отвечать за|to be in charge of|小王负责这个项目。|Сяо Ван отвечает за этот проект.
+奖金|jiǎngjīn|премия, бонус|bonus|年底公司给大家发了奖金。|В конце года компания выдала всем премию.
+`},
+{t:"Учёба",z:"学习",i:"🎓",w:`
+专业|zhuānyè|специальность|major, specialty|你大学学的是什么专业？|Какая у тебя была специальность в университете?
+复习|fùxí|повторять (материал)|to review, revise|考试前要好好复习。|Перед экзаменом нужно хорошо всё повторить.
+预习|yùxí|готовиться к уроку заранее|to preview a lesson|上课前最好先预习一下。|Перед уроком лучше заранее подготовиться.
+成绩|chéngjì|оценки, результаты|grades, results|这学期他的成绩提高了很多。|В этом семестре его оценки сильно выросли.
+毕业|bìyè|окончить учёбу|to graduate|她去年大学毕业了。|Она окончила университет в прошлом году.
+奖学金|jiǎngxuéjīn|стипендия|scholarship|他获得了去北京留学的奖学金。|Он получил стипендию на учёбу в Пекине.
+论文|lùnwén|диплом, научная статья|thesis, paper|我正在写毕业论文。|Я сейчас пишу дипломную работу.
+硕士|shuòshì|магистр, магистратура|master's degree|她在读硕士。|Она учится в магистратуре.
+语法|yǔfǎ|грамматика|grammar|中文语法其实不太难。|Грамматика китайского на самом деле не очень сложная.
+翻译|fānyì|переводить; переводчик|to translate; translator|请帮我把这句话翻译成中文。|Помоги перевести эту фразу на китайский.
+报名|bàomíng|записаться, зарегистрироваться|to sign up, enroll|我已经报名参加HSK五级考试了。|Я уже записался на экзамен HSK 5.
+及格|jígé|сдать на проходной балл|to pass (an exam)|这次考试我终于及格了。|На этот раз я наконец сдал экзамен.
+`},
+{t:"Путешествия",z:"旅行",i:"✈️",w:`
+签证|qiānzhèng|виза|visa|去中国需要办签证吗？|Нужно ли оформлять визу в Китай?
+护照|hùzhào|паспорт|passport|出国旅行一定要带好护照。|Едешь за границу — обязательно возьми паспорт.
+航班|hángbān|рейс|flight|我的航班晚上八点起飞。|Мой рейс вылетает в восемь вечера.
+登机牌|dēngjīpái|посадочный талон|boarding pass|请出示您的登机牌。|Покажите, пожалуйста, посадочный талон.
+行李箱|xínglixiāng|чемодан|suitcase|我的行李箱太重了。|Мой чемодан слишком тяжёлый.
+导游|dǎoyóu|гид, экскурсовод|tour guide|导游给我们介绍了这座城市的历史。|Гид рассказал нам историю этого города.
+景点|jǐngdiǎn|достопримечательность|tourist attraction|长城是北京最有名的景点之一。|Великая стена — одна из самых известных достопримечательностей Пекина.
+推迟|tuīchí|откладывать, задерживать|to postpone, delay|因为下大雨，航班推迟了两个小时。|Из-за ливня рейс задержали на два часа.
+预订|yùdìng|бронировать|to book, reserve|我已经在网上预订了酒店。|Я уже забронировал отель онлайн.
+地图|dìtú|карта|map|用手机地图很方便。|Пользоваться картой в телефоне очень удобно.
+风景|fēngjǐng|пейзаж, вид|scenery, landscape|桂林的风景特别美。|Пейзажи Гуйлиня невероятно красивы.
+迷路|mílù|заблудиться|to get lost|我第一次去上海的时候迷路了。|В первый раз в Шанхае я заблудился.
+`},
+{t:"Здоровье",z:"健康",i:"🩺",w:`
+感冒|gǎnmào|простуда, простудиться|cold, to catch a cold|天气变冷了，小心别感冒。|Похолодало — смотри не простудись.
+发烧|fāshāo|температура, жар|to have a fever|孩子发烧了，三十九度。|У ребёнка температура — тридцать девять.
+咳嗽|késou|кашель, кашлять|cough|他咳嗽得很厉害。|Он сильно кашляет.
+打针|dǎzhēn|делать укол|to give/get an injection|我从小就怕打针。|С детства боюсь уколов.
+过敏|guòmǐn|аллергия|allergy, allergic|我对花生过敏。|У меня аллергия на арахис.
+锻炼|duànliàn|тренироваться, закаляться|to exercise, work out|我每天早上锻炼半个小时。|Каждое утро я тренируюсь полчаса.
+营养|yíngyǎng|питательность, питание|nutrition|鸡蛋很有营养。|Яйца очень питательные.
+受伤|shòushāng|получить травму|to get injured|他踢足球的时候受伤了。|Он получил травму, играя в футбол.
+疼|téng|болеть (о боли)|to ache, hurt|我头疼得厉害。|У меня сильно болит голова.
+挂号|guàhào|записаться (к врачу)|to register (at a hospital)|看病要先挂号。|Чтобы попасть к врачу, сначала нужно записаться.
+健康|jiànkāng|здоровье, здоровый|health, healthy|身体健康比什么都重要。|Здоровье важнее всего.
+失眠|shīmián|бессонница|insomnia|最近压力大，我经常失眠。|В последнее время много стресса, часто мучаюсь бессонницей.
+`},
+{t:"Еда и вкусы",z:"饮食",i:"🥟",w:`
+味道|wèidao|вкус|taste, flavor|这个菜的味道好极了。|Вкус у этого блюда просто отличный.
+辣|là|острый|spicy, hot|四川菜又麻又辣。|Сычуаньская кухня жгучая и острая.
+咸|xián|солёный|salty|汤有点儿咸了。|Суп немного пересолен.
+酸|suān|кислый|sour|这个橘子太酸了。|Этот мандарин слишком кислый.
+苦|kǔ|горький|bitter|良药苦口。|Хорошее лекарство горько на вкус.
+饺子|jiǎozi|пельмени цзяоцзы|dumplings|春节的时候北方人喜欢包饺子。|На Праздник весны северяне любят лепить цзяоцзы.
+烤鸭|kǎoyā|утка по-пекински|roast duck|来北京一定要吃烤鸭。|Приехал в Пекин — обязательно попробуй утку.
+筷子|kuàizi|палочки для еды|chopsticks|你会用筷子吗？|Ты умеешь есть палочками?
+餐厅|cāntīng|ресторан, столовая|restaurant, dining hall|这家餐厅的服务很好。|В этом ресторане хорошее обслуживание.
+菜单|càidān|меню|menu|服务员，请给我们菜单。|Официант, принесите нам меню, пожалуйста.
+打包|dǎbāo|упаковать с собой|to pack (leftovers) to go|菜没吃完，我们打包吧。|Не доели — давай возьмём с собой.
+尝|cháng|пробовать на вкус|to taste, try|你尝尝我做的菜。|Попробуй, что я приготовил.
+`},
+{t:"Покупки и деньги",z:"购物",i:"🛍️",w:`
+价格|jiàgé|цена|price|这里的价格比网上贵一点儿。|Здесь цены немного выше, чем в интернете.
+打折|dǎzhé|делать скидку|to give a discount|这件衣服打八折。|На эту вещь скидка 20% (цена — 80%).
+优惠|yōuhuì|льготный; скидка, акция|discount, preferential|学生买票有优惠。|Студентам скидка на билеты.
+付款|fùkuǎn|оплачивать|to pay|现在大部分人用手机付款。|Сейчас большинство людей платят телефоном.
+现金|xiànjīn|наличные|cash|对不起，我们不收现金。|Извините, мы не принимаем наличные.
+信用卡|xìnyòngkǎ|кредитная карта|credit card|可以用信用卡吗？|Можно оплатить кредитной картой?
+退|tuì|вернуть (товар)|to return (goods)|不合适的话可以退。|Если не подойдёт, можно вернуть.
+质量|zhìliàng|качество|quality|这双鞋质量很好。|У этой обуви хорошее качество.
+存|cún|откладывать, класть (деньги)|to deposit, to save|我每个月存一点儿钱。|Каждый месяц я откладываю немного денег.
+浪费|làngfèi|тратить впустую|to waste|别浪费时间了。|Не трать время зря.
+省钱|shěngqián|экономить деньги|to save money|为了省钱，他每天自己做饭。|Чтобы экономить, он каждый день готовит сам.
+发票|fāpiào|чек, счёт-фактура|receipt, invoice|请给我开一张发票。|Выпишите мне, пожалуйста, чек.
+`},
+{t:"Природа и погода",z:"自然",i:"🌿",w:`
+气候|qìhòu|климат|climate|昆明的气候四季如春。|В Куньмине климат как вечная весна.
+温度|wēndù|температура|temperature|今天的温度比昨天低了十度。|Сегодня на десять градусов холоднее, чем вчера.
+阳光|yángguāng|солнечный свет|sunshine|今天阳光很好，我们出去走走吧。|Сегодня солнечно — пойдём прогуляемся.
+彩虹|cǎihóng|радуга|rainbow|雨后天上出现了一道彩虹。|После дождя на небе появилась радуга.
+打雷|dǎléi|гремит гром|to thunder|外面打雷了，快关窗户。|На улице гром — закрой скорее окно.
+台风|táifēng|тайфун|typhoon|台风来了，学校停课了。|Пришёл тайфун, занятия в школе отменили.
+沙漠|shāmò|пустыня|desert|沙漠里很少下雨。|В пустыне редко идут дожди.
+森林|sēnlín|лес|forest|森林里有很多动物。|В лесу много животных.
+海洋|hǎiyáng|океан, море|ocean|地球表面大部分是海洋。|Большая часть поверхности Земли — океан.
+污染|wūrǎn|загрязнение|pollution, to pollute|大城市的空气污染很严重。|В больших городах сильное загрязнение воздуха.
+保护|bǎohù|защищать, охранять|to protect|我们应该保护环境。|Мы должны защищать окружающую среду.
+季节|jìjié|время года, сезон|season|你最喜欢哪个季节？|Какое твоё любимое время года?
+`},
+{t:"Город и дом",z:"城市生活",i:"🏙️",w:`
+房租|fángzū|арендная плата|rent|北京的房租越来越贵了。|Аренда в Пекине становится всё дороже.
+搬家|bānjiā|переезжать|to move house|我们下个月要搬家。|В следующем месяце мы переезжаем.
+装修|zhuāngxiū|ремонт, отделка|to renovate, decorate|新房子正在装修。|В новой квартире сейчас ремонт.
+家具|jiājù|мебель|furniture|这些家具都是新买的。|Вся эта мебель новая.
+厨房|chúfáng|кухня|kitchen|妈妈在厨房做饭呢。|Мама готовит на кухне.
+阳台|yángtái|балкон|balcony|我喜欢在阳台上喝茶。|Я люблю пить чай на балконе.
+楼梯|lóutī|лестница|stairs|电梯坏了，只能走楼梯。|Лифт сломан, придётся идти по лестнице.
+停车场|tíngchēchǎng|парковка|parking lot|停车场已经满了。|Парковка уже заполнена.
+堵车|dǔchē|пробка|traffic jam|下班的时候经常堵车。|После работы часто бывают пробки.
+地铁站|dìtiězhàn|станция метро|subway station|我家离地铁站很近。|Мой дом совсем рядом с метро.
+小区|xiǎoqū|жилой комплекс, микрорайон|residential compound|我们小区环境很好。|В нашем жилом комплексе хорошая обстановка.
+打扫|dǎsǎo|убирать, подметать|to clean, sweep|周末我要打扫房间。|На выходных мне надо убраться в комнате.
+`},
+{t:"Технологии",z:"科技",i:"📱",w:`
+网站|wǎngzhàn|сайт|website|这个网站可以免费学中文。|На этом сайте можно бесплатно учить китайский.
+密码|mìmǎ|пароль|password|我忘记密码了。|Я забыл пароль.
+下载|xiàzài|скачивать|to download|你可以先下载这个软件。|Сначала можешь скачать эту программу.
+充电|chōngdiàn|заряжать|to charge (battery)|手机快没电了，我要充电。|Телефон почти сел, мне надо зарядиться.
+信号|xìnhào|сигнал, связь|signal|这里手机信号不好。|Здесь плохо ловит телефон.
+软件|ruǎnjiàn|программа, приложение|software, app|这个学习软件很好用。|Это приложение для учёбы очень удобное.
+上网|shàngwǎng|выходить в интернет|to go online|很多人每天上网好几个小时。|Многие сидят в интернете по несколько часов в день.
+视频|shìpín|видео|video|他每天都在网上看视频。|Он каждый день смотрит видео в интернете.
+二维码|èrwéimǎ|QR-код|QR code|请扫这个二维码付款。|Отсканируйте этот QR-код для оплаты.
+复制|fùzhì|копировать|to copy|你把这段话复制一下发给我。|Скопируй этот текст и пришли мне.
+删除|shānchú|удалять|to delete|我不小心把照片删除了。|Я случайно удалил фотографии.
+登录|dēnglù|войти (в аккаунт)|to log in|请先登录你的账号。|Сначала войдите в свой аккаунт.
+`},
+{t:"Общество и новости",z:"社会",i:"📰",w:`
+新闻|xīnwén|новости|news|我每天早上看新闻。|Каждое утро я смотрю новости.
+政府|zhèngfǔ|правительство|government|政府出台了新的政策。|Правительство приняло новую политику.
+经济|jīngjì|экономика|economy|他在大学学的是经济。|В университете он изучал экономику.
+发展|fāzhǎn|развиваться, развитие|to develop, development|这个城市这几年发展得很快。|Этот город за последние годы быстро развился.
+社会|shèhuì|общество|society|每个人都是社会的一部分。|Каждый человек — часть общества.
+竞争|jìngzhēng|конкуренция|competition|现在找工作竞争很激烈。|Сейчас при поиске работы жёсткая конкуренция.
+国际|guójì|международный|international|他在一家国际公司工作。|Он работает в международной компании.
+法律|fǎlǜ|закон, право|law|每个人都要遵守法律。|Каждый должен соблюдать закон.
+调查|diàochá|исследование, опрос|survey, investigation|调查显示，年轻人越来越喜欢网上购物。|Опрос показал, что молодёжь всё больше любит покупать онлайн.
+影响|yǐngxiǎng|влияние, влиять|influence, to affect|父母对孩子的影响很大。|Родители сильно влияют на детей.
+现象|xiànxiàng|явление|phenomenon|这是一种很普遍的社会现象。|Это очень распространённое социальное явление.
+报道|bàodào|репортаж, сообщать|report, to report|很多媒体报道了这件事。|Многие СМИ сообщили об этом событии.
+`},
+{t:"Искусство и досуг",z:"艺术",i:"🎭",w:`
+演出|yǎnchū|выступление, спектакль|performance, show|今晚的演出非常精彩。|Сегодняшнее выступление было великолепным.
+节目|jiémù|программа, номер|program, show|春节晚会的节目很有意思。|Программа новогоднего концерта очень интересная.
+京剧|jīngjù|пекинская опера|Peking opera|我第一次看京剧，觉得很新鲜。|Я впервые смотрел пекинскую оперу — было непривычно и интересно.
+小说|xiǎoshuō|роман, повесть|novel, fiction|这本小说我已经看了三遍。|Этот роман я прочитал уже три раза.
+作家|zuòjiā|писатель|writer, author|鲁迅是中国有名的作家。|Лу Синь — известный китайский писатель.
+演员|yǎnyuán|актёр|actor, actress|他是一位很有名的演员。|Он очень известный актёр.
+观众|guānzhòng|зрители|audience|观众们都站起来了。|Все зрители встали.
+弹钢琴|tán gāngqín|играть на фортепиано|to play the piano|她从五岁开始弹钢琴。|Она играет на фортепиано с пяти лет.
+摄影|shèyǐng|фотография (искусство)|photography|他的爱好是摄影。|Его хобби — фотография.
+展览|zhǎnlǎn|выставка|exhibition|这个展览下个月结束。|Эта выставка закончится в следующем месяце.
+博物馆|bówùguǎn|музей|museum|周末我们去博物馆吧。|Давай на выходных сходим в музей.
+鼓掌|gǔzhǎng|аплодировать|to applaud|演出结束后，大家热烈鼓掌。|После выступления все бурно аплодировали.
+`},
+{t:"Спорт и хобби",z:"运动",i:"🏸",w:`
+比赛|bǐsài|соревнование, матч|competition, match|明天有一场足球比赛。|Завтра будет футбольный матч.
+冠军|guànjūn|чемпион|champion|她得了游泳比赛的冠军。|Она стала чемпионкой соревнований по плаванию.
+羽毛球|yǔmáoqiú|бадминтон|badminton|下班后我们去打羽毛球吧。|После работы пойдём поиграем в бадминтон.
+乒乓球|pīngpāngqiú|настольный теннис|table tennis|乒乓球是中国的国球。|Настольный теннис — национальный вид спорта Китая.
+游泳|yóuyǒng|плавать|to swim|夏天我常常去海边游泳。|Летом я часто хожу купаться на море.
+爬山|páshān|ходить в горы|to hike, climb mountains|我们周末去爬山了。|На выходных мы ходили в горы.
+钓鱼|diàoyú|рыбачить|to fish|爷爷最喜欢钓鱼。|Дедушка больше всего любит рыбалку.
+太极拳|tàijíquán|тайцзицюань|tai chi|公园里很多老人在打太极拳。|В парке много пожилых людей занимаются тайцзи.
+输|shū|проиграть|to lose|我们队输了两个球。|Наша команда проиграла два мяча.
+赢|yíng|выиграть|to win|最后我们赢了！|В итоге мы выиграли!
+坚持|jiānchí|упорно продолжать|to persist, stick with|学外语最重要的是坚持。|В изучении языка главное — не бросать.
+业余|yèyú|любительский; свободное время|amateur; spare time|业余时间你喜欢做什么？|Что ты любишь делать в свободное время?
+`},
+{t:"Время и частота",z:"时间副词",i:"⏳",w:`
+曾经|céngjīng|когда-то, однажды|once, formerly|我曾经在上海住过两年。|Когда-то я два года жил в Шанхае.
+刚刚|gānggāng|только что|just now|他刚刚出去了。|Он только что вышел.
+终于|zhōngyú|наконец|finally, at last|等了一个小时，公共汽车终于来了。|Ждали час — автобус наконец пришёл.
+仍然|réngrán|всё ещё, по-прежнему|still, yet|已经十一月了，天气仍然很热。|Уже ноябрь, а всё ещё жарко.
+马上|mǎshàng|сейчас же, сразу|immediately, right away|你等一下，我马上就到。|Подожди, я сейчас буду.
+偶尔|ǒu'ěr|изредка|occasionally|我偶尔会去看电影。|Я изредка хожу в кино.
+往往|wǎngwǎng|как правило, обычно|often, usually|周末这里往往人很多。|На выходных здесь обычно много людей.
+逐渐|zhújiàn|постепенно|gradually|天气逐渐暖和起来了。|Постепенно потеплело.
+从来|cónglái|всегда; (с 不) никогда|always; (with neg.) never|他从来不迟到。|Он никогда не опаздывает.
+暂时|zànshí|временно, пока|temporarily, for now|这个问题暂时还不能解决。|Этот вопрос пока не получается решить.
+将来|jiānglái|будущее, в будущем|future, in the future|你将来想做什么工作？|Кем ты хочешь работать в будущем?
+始终|shǐzhōng|неизменно, всё время|from start to finish, always|他始终没有放弃。|Он так и не сдался.
+`},
+{t:"Союзы и связки",z:"关联词",i:"🔗",w:`
+虽然|suīrán|хотя|although|虽然很累，但是很开心。|Хотя устал, но очень доволен.
+因此|yīncǐ|поэтому, в связи с этим|therefore|他每天练习，因此进步很快。|Он занимается каждый день, поэтому быстро прогрессирует.
+否则|fǒuzé|иначе, в противном случае|otherwise|快走吧，否则要迟到了。|Пошли быстрее, иначе опоздаем.
+即使|jíshǐ|даже если|even if|即使下雨，我们也要去。|Даже если пойдёт дождь, мы всё равно пойдём.
+既然|jìrán|раз уж|since, now that|既然你不喜欢，就别买了。|Раз тебе не нравится, не покупай.
+不管|bùguǎn|независимо от, как бы ни|no matter|不管多忙，他都会给妈妈打电话。|Как бы он ни был занят, он звонит маме.
+甚至|shènzhì|даже|even, so much so that|他忙得甚至没有时间吃饭。|Он так занят, что даже некогда поесть.
+而且|érqiě|к тому же, а также|moreover, and also|这家饭馆便宜，而且好吃。|Этот ресторан дешёвый, к тому же вкусный.
+尽管|jǐnguǎn|несмотря на то что|despite, even though|尽管天气很冷，他还是去跑步了。|Несмотря на холод, он всё же пошёл на пробежку.
+无论|wúlùn|какой бы ни, независимо от|regardless of|无论遇到什么困难，我都不会放弃。|Какие бы трудности ни встретились, я не сдамся.
+于是|yúshì|и тогда, вслед за этим|so, thereupon|雨停了，于是我们出发了。|Дождь прекратился, и мы отправились в путь.
+只要|zhǐyào|стоит только, лишь бы|as long as|只要努力，就一定能成功。|Стоит только постараться — и обязательно добьёшься успеха.
+`},
+{t:"Ключевые глаголы",z:"动词",i:"⚙️",w:`
+解决|jiějué|решать (проблему)|to solve, resolve|这个问题很难解决。|Эту проблему трудно решить.
+建议|jiànyì|советовать; предложение|to suggest; suggestion|医生建议我多休息。|Врач посоветовал мне больше отдыхать.
+讨论|tǎolùn|обсуждать|to discuss|我们讨论一下明天的计划吧。|Давай обсудим план на завтра.
+提供|tígōng|предоставлять|to provide, supply|酒店提供免费早餐。|Отель предоставляет бесплатный завтрак.
+拒绝|jùjué|отказывать, отклонять|to refuse, reject|他拒绝了我的邀请。|Он отклонил моё приглашение.
+放弃|fàngqì|бросить, отказаться|to give up|不要轻易放弃。|Не сдавайся так легко.
+适应|shìyìng|привыкать, адаптироваться|to adapt, get used to|我已经适应了这里的生活。|Я уже привык к здешней жизни.
+改变|gǎibiàn|менять, изменение|to change|这次旅行改变了我的想法。|Эта поездка изменила мои взгляды.
+表达|biǎodá|выражать|to express|我不知道怎么用中文表达。|Не знаю, как выразить это по-китайски.
+允许|yǔnxǔ|разрешать|to allow, permit|这里不允许抽烟。|Здесь не разрешается курить.
+估计|gūjì|предполагать, прикидывать|to estimate, reckon|我估计他今天不会来了。|Думаю, он сегодня не придёт.
+证明|zhèngmíng|доказывать; справка|to prove; certificate|事实证明他是对的。|Факты доказали, что он был прав.
+`},
+{t:"Абстрактные понятия",z:"抽象词",i:"💡",w:`
+机会|jīhuì|шанс, возможность|opportunity, chance|这是一个难得的机会。|Это редкая возможность.
+目标|mùbiāo|цель|goal, target|我今年的目标是通过HSK五级。|Моя цель на этот год — сдать HSK 5.
+态度|tàidu|отношение, позиция|attitude|他的工作态度很认真。|Он очень серьёзно относится к работе.
+压力|yālì|давление, стресс|pressure, stress|最近工作压力很大。|В последнее время на работе сильный стресс.
+责任|zérèn|ответственность|responsibility|照顾父母是我们的责任。|Заботиться о родителях — наша ответственность.
+能力|nénglì|способность|ability, capability|她的语言能力很强。|У неё сильные языковые способности.
+优点|yōudiǎn|достоинство|merit, strength|每个人都有自己的优点。|У каждого свои достоинства.
+缺点|quēdiǎn|недостаток|shortcoming, flaw|他最大的缺点是太粗心。|Его главный недостаток — невнимательность.
+秘密|mìmì|секрет, тайна|secret|这是我们俩的秘密。|Это наш с тобой секрет.
+梦想|mèngxiǎng|мечта|dream|我的梦想是环游世界。|Моя мечта — объехать весь мир.
+效果|xiàoguǒ|эффект, результат|effect, result|这种药效果很好。|Это лекарство хорошо действует.
+原因|yuányīn|причина|reason, cause|你知道他迟到的原因吗？|Ты знаешь, почему он опоздал?
+`},
+{t:"Бизнес",z:"商务",i:"📊",w:`
+合同|hétong|контракт, договор|contract|双方已经签了合同。|Стороны уже подписали контракт.
+会议|huìyì|совещание, конференция|meeting, conference|下午三点有一个重要的会议。|В три часа дня важное совещание.
+客户|kèhù|клиент|client, customer|我们要让客户满意。|Мы должны сделать так, чтобы клиент был доволен.
+合作|hézuò|сотрудничать|to cooperate|希望我们以后能继续合作。|Надеемся и дальше сотрудничать.
+签|qiān|подписывать|to sign|请在这里签名。|Пожалуйста, распишитесь здесь.
+市场|shìchǎng|рынок|market|这个产品在中国市场很受欢迎。|Этот продукт популярен на китайском рынке.
+产品|chǎnpǐn|продукт, изделие|product|我们公司的新产品下个月上市。|Новый продукт нашей компании выходит в следующем месяце.
+利润|lìrùn|прибыль|profit|今年公司的利润增加了百分之二十。|В этом году прибыль компании выросла на 20%.
+数据|shùjù|данные|data|根据最新的数据，用户增加了很多。|По последним данным, пользователей стало намного больше.
+方案|fāng'àn|план, вариант решения|plan, proposal|这个方案还需要修改。|Этот план ещё нужно доработать.
+报告|bàogào|отчёт, доклад|report|经理让我明天交报告。|Менеджер попросил сдать отчёт завтра.
+效率|xiàolǜ|эффективность|efficiency|用这个方法可以提高工作效率。|Этот метод повышает эффективность работы.
+`},
+{t:"Описания (прилагательные)",z:"形容词",i:"🎨",w:`
+精彩|jīngcǎi|великолепный, яркий|wonderful, brilliant|这场比赛太精彩了！|Этот матч был потрясающим!
+普遍|pǔbiàn|распространённый|common, widespread|这种情况在大城市很普遍。|Такое очень распространено в больших городах.
+严重|yánzhòng|серьёзный, тяжёлый|serious, severe|他的病不太严重。|Его болезнь не очень серьёзная.
+合适|héshì|подходящий|suitable, fitting|这件衣服你穿很合适。|Эта одежда тебе очень идёт.
+复杂|fùzá|сложный|complicated|这个问题比我想的复杂。|Этот вопрос сложнее, чем я думал.
+激烈|jīliè|ожесточённый, напряжённый|intense, fierce|比赛进行得非常激烈。|Матч прошёл очень напряжённо.
+熟悉|shúxī|знакомый; хорошо знать|familiar; to know well|我对这个城市很熟悉。|Я хорошо знаю этот город.
+陌生|mòshēng|незнакомый, чужой|unfamiliar, strange|刚来的时候，一切都很陌生。|Когда я только приехал, всё было незнакомым.
+准确|zhǔnquè|точный|accurate, precise|他的发音很准确。|У него очень точное произношение.
+热闹|rènao|оживлённый, шумный|lively, bustling|春节的时候街上特别热闹。|На Праздник весны на улицах особенно оживлённо.
+安静|ānjìng|тихий, спокойный|quiet|图书馆里请保持安静。|В библиотеке, пожалуйста, соблюдайте тишину.
+正式|zhèngshì|официальный, формальный|formal, official|参加婚礼要穿得正式一点儿。|На свадьбу нужно одеться построже.
+`},
+{t:"Китайская культура",z:"中国文化",i:"🏮",w:`
+春节|Chūnjié|Праздник весны (Новый год)|Spring Festival|春节是中国最重要的节日。|Праздник весны — самый важный праздник в Китае.
+红包|hóngbāo|красный конверт с деньгами|red envelope|过年的时候，长辈给孩子发红包。|На Новый год старшие дарят детям красные конверты.
+鞭炮|biānpào|петарды|firecrackers|除夕晚上到处都在放鞭炮。|В новогоднюю ночь повсюду взрывают петарды.
+月饼|yuèbing|лунный пряник юэбин|mooncake|中秋节要吃月饼。|На Праздник середины осени едят юэбины.
+中秋节|Zhōngqiūjié|Праздник середины осени|Mid-Autumn Festival|中秋节是家人团圆的日子。|Праздник середины осени — день, когда собирается вся семья.
+书法|shūfǎ|каллиграфия|calligraphy|他练了十年书法。|Он десять лет занимается каллиграфией.
+传统|chuántǒng|традиция, традиционный|tradition, traditional|包饺子是我们家的传统。|Лепить цзяоцзы — традиция нашей семьи.
+功夫|gōngfu|кунг-фу; мастерство|kung fu; skill|很多外国人因为功夫电影爱上了中国。|Многие иностранцы полюбили Китай благодаря фильмам о кунг-фу.
+熊猫|xióngmāo|панда|panda|熊猫是中国的国宝。|Панда — национальное сокровище Китая.
+长城|Chángchéng|Великая Китайская стена|the Great Wall|不到长城非好汉。|Кто не был на Великой стене — не настоящий герой.
+旗袍|qípáo|ципао (платье)|qipao, cheongsam|她穿旗袍特别漂亮。|Она очень красива в ципао.
+拜年|bàinián|поздравлять с Новым годом|to pay a New Year call|初一我们去爷爷奶奶家拜年。|В первый день года мы едем поздравлять бабушку с дедушкой.
+`},
+{t:"Чэнъюй и идиомы",z:"成语",i:"🐉",w:`
+马马虎虎|mǎmahǔhǔ|так себе; небрежно|so-so; careless|我的中文马马虎虎。|Мой китайский так себе.
+一路平安|yílù píng'ān|счастливого пути|have a safe trip|祝你一路平安！|Счастливого пути!
+入乡随俗|rù xiāng suí sú|в чужой монастырь со своим уставом не ходят|when in Rome, do as the Romans do|入乡随俗，到了中国就用筷子吃饭吧。|В чужой монастырь со своим уставом не ходят — в Китае ешь палочками.
+半途而废|bàn tú ér fèi|бросить на полпути|to give up halfway|学习不能半途而废。|В учёбе нельзя бросать на полпути.
+一举两得|yì jǔ liǎng dé|убить двух зайцев|kill two birds with one stone|边旅游边学中文，真是一举两得。|Путешествовать и учить китайский одновременно — два зайца сразу.
+自言自语|zì yán zì yǔ|разговаривать с самим собой|to talk to oneself|他一边走一边自言自语。|Он шёл и разговаривал сам с собой.
+乱七八糟|luànqībāzāo|полный беспорядок|in a total mess|你的房间怎么乱七八糟的？|Почему у тебя в комнате такой бардак?
+一模一样|yì mú yí yàng|точь-в-точь|exactly alike|这对双胞胎长得一模一样。|Эти близнецы похожи как две капли воды.
+千方百计|qiān fāng bǎi jì|всеми правдами и неправдами|by every possible means|他千方百计地想找到那本书。|Он всеми способами пытался найти ту книгу.
+不知不觉|bù zhī bù jué|незаметно для себя|without noticing|不知不觉，我已经在中国住了三年。|Незаметно я прожил в Китае уже три года.
+津津有味|jīnjīn yǒu wèi|с аппетитом, с увлечением|with great relish|孩子们吃得津津有味。|Дети ели с большим аппетитом.
+画蛇添足|huà shé tiān zú|перестараться (пририсовать змее ноги)|to ruin by adding the superfluous|文章已经很好了，再加这段就是画蛇添足。|Статья уже хорошая, добавлять этот абзац — лишнее.
+`},
+{t:"Живая разговорная речь",z:"口语",i:"💬",w:`
+宝贝|bǎobèi|малыш, сокровище|baby, darling|宝贝，别哭了。|Малыш, не плачь.
+老公|lǎogōng|муж, муженёк|hubby, husband|老公，今天晚上吃什么？|Дорогой, что у нас на ужин?
+老婆|lǎopo|жена, жёнушка|wifey, wife|我老婆做饭特别好吃。|Моя жена потрясающе готовит.
+加油|jiāyóu|давай! держись!|go for it! you can do it!|明天考试，加油！|Завтра экзамен — удачи, держись!
+没问题|méi wèntí|без проблем|no problem|这件事交给我，没问题。|Оставь это мне, без проблем.
+算了|suàn le|ладно, забудь|forget it, never mind|算了，我们明天再说吧。|Ладно, давай поговорим завтра.
+真的假的|zhēn de jiǎ de|серьёзно?! правда?|for real?!|你中了彩票？真的假的？|Ты выиграл в лотерею? Серьёзно?!
+随便|suíbiàn|как хочешь, всё равно|whatever, as you like|吃什么都行，随便。|Можно есть что угодно, мне всё равно.
+厉害|lìhai|круто; сильный|awesome, impressive|你才学一年就说得这么好，真厉害！|Учишь всего год и так хорошо говоришь — круто!
+无聊|wúliáo|скучно, скучный|bored, boring|这个电影太无聊了。|Этот фильм ужасно скучный.
+麻烦|máfan|хлопоты; побеспокоить|trouble; to bother|麻烦你帮我拿一下。|Не затруднит вас подать мне это?
+说漏嘴|shuō lòu zuǐ|проболтаться|to let slip|我不小心说漏嘴了。|Я случайно проболтался.
+`}
+];
+
+/* ================== ДАННЫЕ ================== */
+const LEVELS = RAW.map((L,id)=>({id,t:L.t,z:L.z,i:L.i,words:L.w.trim().split('\n').map(line=>{
+  const [hz,py,ru,en,ex,exru]=line.split('|').map(s=>s.trim());
+  return {hz,py,ru,en,ex,exru,lvl:id};
+})}));
+const ALL = LEVELS.flatMap(l=>l.words);
+
+const LS_KEY='hanzi-cards-hsk45-v1';
+const DEF_SETTINGS={lang:'both',showPinyin:false,mode:'mixed',autoAudio:true};
+let store={srs:{},levels:{},xp:0,streak:{last:null,count:0},settings:{...DEF_SETTINGS}};
+try{const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(s){store=Object.assign(store,s);store.settings=Object.assign({...DEF_SETTINGS},s.settings||{});}}catch(e){}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(store))}catch(e){}}
+
+/* ================== ИНТЕРВАЛЬНОЕ ПОВТОРЕНИЕ (Лейтнер) ================== */
+const INTERVALS=[0,1,3,7,14,30,60]; // дни для коробок 0..6
+const DAY=864e5;
+function srs(w){return store.srs[w.hz]}
+function srsUpdate(w,ok){
+  const r=store.srs[w.hz]||{b:0,d:0,c:0,x:0};
+  if(ok){r.b=Math.min(r.b+1,6);r.c++;r.d=Date.now()+INTERVALS[r.b]*DAY;}
+  else{r.b=0;r.x++;r.d=Date.now();}
+  store.srs[w.hz]=r;save();
+}
+function isMastered(w){const r=srs(w);return r&&r.b>=3}
+function dueWords(){const now=Date.now();return ALL.filter(w=>{const r=srs(w);return r&&r.d<=now}).sort((a,b)=>srs(a).b-srs(b).b)}
+
+/* ================== ПИНЬИНЬ И ТОНА ================== */
+const VOW='aāáǎàeēéěèiīíǐìoōóǒòuūúǔùüǖǘǚǜ';
+const TONE={};'āēīōūǖ'.split('').forEach(c=>TONE[c]=1);'áéíóúǘ'.split('').forEach(c=>TONE[c]=2);'ǎěǐǒǔǚ'.split('').forEach(c=>TONE[c]=3);'àèìòùǜ'.split('').forEach(c=>TONE[c]=4);
+const INITS=['zh','ch','sh','b','p','m','f','d','t','n','l','g','k','h','j','q','x','r','z','c','s','y','w'];
+const SEP=/[\s'’\-]/;
+const segCache={};
+function segment(py,n){
+  const key=py+'#'+n; if(key in segCache)return segCache[key];
+  const s=py.toLowerCase();
+  function rec(pos,acc){
+    while(pos<s.length&&SEP.test(s[pos]))pos++;
+    if(pos>=s.length)return acc.length===n?acc:null;
+    if(acc.length>=n)return null;
+    const boundary=pos===0||SEP.test(s[pos-1]);
+    const opts=INITS.filter(i=>s.startsWith(i,pos));if(boundary)opts.push('');
+    for(const ini of opts){
+      const p=pos+ini.length;let q=p;while(q<s.length&&VOW.includes(s[q]))q++;
+      if(q===p)continue;
+      for(const fin of ['ng','n','r','']){
+        if(fin&&!s.startsWith(fin,q))continue;
+        if(fin==='r'&&!(ini===''&&/^[eēéěè]$/.test(s.slice(p,q))))continue;
+        const end=q+fin.length;
+        const r=rec(end,acc.concat([[pos,end]]));if(r)return r;
+      }
+    }
+    return null;
+  }
+  const res=rec(0,[]);
+  const out=res?res.map(([a,b])=>{let t=5;for(const c of s.slice(a,b))if(TONE[c]){t=TONE[c];break}return {a,b,t}}):null;
+  segCache[key]=out;return out;
+}
+const isHan=c=>/[一-鿿]/.test(c);
+function colorize(w){
+  const hzChars=[...w.hz];const n=hzChars.filter(isHan).length;
+  const seg=segment(w.py,n);
+  if(!seg)return {hz:w.hz,py:w.py};
+  let k=0;const hz=hzChars.map(c=>isHan(c)?`<span class="t${seg[k++].t}">${c}</span>`:c).join('');
+  let py='',last=0;seg.forEach(({a,b,t})=>{py+=w.py.slice(last,a)+`<span class="t${t}">${w.py.slice(a,b)}</span>`;last=b});py+=w.py.slice(last);
+  return {hz,py};
+}
+
+/* ================== ОЗВУЧКА ================== */
+const TTS='speechSynthesis' in window;
+let zhVoice=null,voicesLoaded=false;
+function loadVoices(){if(!TTS)return;const vs=speechSynthesis.getVoices();if(vs.length)voicesLoaded=true;zhVoice=vs.find(v=>/zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang)&&!/HK|TW/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;}
+if(TTS){loadVoices();speechSynthesis.onvoiceschanged=()=>{loadVoices();if(screen==='home')render()};}
+function speak(text,rate){if(!TTS)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';if(zhVoice)u.voice=zhVoice;u.rate=rate||0.85;speechSynthesis.speak(u);}catch(e){}}
+
+/* ================== УТИЛИТЫ ================== */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function stars(n,cls){let s='';for(let i=0;i<3;i++)s+=i<n?'★':`<span class="off">★</span>`;return `<span class="${cls||'stars'}">${s}</span>`}
+function meaningHTML(w){const L=store.settings.lang;if(L==='ru')return w.ru;if(L==='en')return w.en;return `${w.ru}<small>${w.en}</small>`}
+function exampleHTML(w){const zh=w.ex.split(w.hz).join(`<mark>${w.hz}</mark>`);return `<div class="ex"><div class="row" style="gap:8px;align-items:flex-start"><button class="iconbtn" onclick="speak(${JSON.stringify(w.ex).replace(/"/g,'&quot;')},0.8)" title="Озвучить пример">🔊</button><div style="flex:1;text-align:left"><div class="zh hz">${zh}</div><div class="ru">${w.exru}</div></div></div></div>`}
+function distractors(w,k){
+  let pool=shuffle(LEVELS[w.lvl].words.filter(x=>x!==w));
+  if(pool.length<k)pool=pool.concat(shuffle(ALL.filter(x=>x!==w&&!pool.includes(x))));
+  return pool.slice(0,k);
+}
+function todayStr(d){d=d||new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function bumpStreak(){const t=todayStr();if(store.streak.last===t)return;const y=new Date(Date.now()-DAY);store.streak.count=store.streak.last===todayStr(y)?store.streak.count+1:1;store.streak.last=t;save();}
+function currentStreak(){const t=todayStr(),y=todayStr(new Date(Date.now()-DAY));return (store.streak.last===t||store.streak.last===y)?store.streak.count:0}
+
+/* ================== ЭКРАНЫ ================== */
+const app=document.getElementById('app');
+let screen='home',sheet=null,Q=null,S=null;
+
+function render(){
+  if(screen==='home')renderHome();
+  else if(screen==='quiz')renderQuiz();
+  else if(screen==='study')renderStudy();
+  else if(screen==='result')renderResult();
+}
+
+function setSetting(k,v){store.settings[k]=v;save();render()}
+
+function renderHome(){
+  const st=store.settings;
+  const mastered=ALL.filter(isMastered).length;
+  const due=dueWords();
+  const seg=(key,opts)=>`<div class="seg">${opts.map(([v,l])=>`<button class="${st[key]===v?'on':''}" onclick="setSetting('${key}','${v}')">${l}</button>`).join('')}</div>`;
+  const noZh=TTS&&voicesLoaded&&!zhVoice;
+  let rec=LEVELS.findIndex(l=>!(store.levels[l.id]&&store.levels[l.id].best>=2));
+  app.innerHTML=`
+  <div class="top">
+    <div class="brand"><div class="seal hz">汉</div><div><h1>汉字卡片 · Карточки</h1><p>Лексика HSK 4–5 · ${LEVELS.length} уровней · ${ALL.length} слов</p></div></div>
+    <div class="stats">
+      <span class="stat">📚 Выучено <b>${mastered}</b>/${ALL.length}</span>
+      <span class="stat">⭐ <b>${store.xp}</b> XP</span>
+      <span class="stat">🔥 <b>${currentStreak()}</b> дн.</span>
+    </div>
+  </div>
+
+  <div class="panel review">
+    <div><h3>🔁 Повторение</h3><p>${due.length?`Пора повторить слов: <b>${due.length}</b>. Ошибки возвращаются сразу, выученные слова — через 1, 3, 7, 14, 30 дней.`:'Сейчас повторять нечего. Пройдите уровень — слова попадут в интервальное повторение.'}</p></div>
+    <button class="btn" ${due.length?'':'disabled'} onclick="startReview()">Повторить${due.length?' ('+Math.min(due.length,20)+')':''}</button>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="gap:22px;align-items:flex-start">
+      <div><div class="lbl">Режим теста</div>${seg('mode',[['mixed','🎲 Микс'],['zh2m','汉 → смысл'],['m2zh','смысл → 汉'],['listen','🎧 Аудирование']])}</div>
+      <div><div class="lbl">Перевод</div>${seg('lang',[['both','RU + EN'],['ru','RU'],['en','EN']])}</div>
+      <div><div class="lbl">Подсказки</div>
+        <div class="row" style="gap:16px">
+          <span class="toggle ${st.showPinyin?'on':''}" onclick="setSetting('showPinyin',${!st.showPinyin})"><span class="sw"></span>Пиньинь виден</span>
+          <span class="toggle ${st.autoAudio?'on':''}" onclick="setSetting('autoAudio',${!st.autoAudio})"><span class="sw"></span>Автоозвучка</span>
+        </div>
+      </div>
+    </div>
+    ${!TTS?'<div class="note">⚠️ Браузер не поддерживает озвучку — аудирование заменится обычным режимом.</div>':noZh?'<div class="note">⚠️ В системе не найден китайский голос — озвучка может звучать неправильно. Установите китайский язык/голос в настройках ОС или откройте в Chrome/Safari.</div>':''}
+    <div class="legend">Цвет тонов: <span class="t1">1-й ā</span><span class="t2">2-й á</span><span class="t3">3-й ǎ</span><span class="t4">4-й à</span><span class="t5">лёгкий</span> · Клавиши: 1–4 ответ, Enter — далее, P — пиньинь, R — озвучить</div>
+  </div>
+
+  <div class="grid">
+    ${LEVELS.map(l=>{const m=l.words.filter(isMastered).length;const best=(store.levels[l.id]||{}).best||0;
+      return `<button class="lvl" onclick="openSheet(${l.id})">
+        <div class="n">УРОВЕНЬ ${l.id+1}${l.id===rec?' · <span style="color:var(--red)">ДАЛЕЕ</span>':''}</div>
+        <div class="ic">${l.i}</div>
+        <div class="t">${l.t}</div>
+        <div class="z hz">${l.z}</div>
+        <div class="bar"><i style="width:${m/l.words.length*100}%"></i></div>
+        <div class="meta"><span>${m}/${l.words.length} выучено</span>${stars(best)}</div>
+      </button>`}).join('')}
+  </div>
+  <div class="footer">Прогресс сохраняется в этом браузере.</div>
+  ${sheet!==null?sheetHTML(sheet):''}`;
+}
+
+function sheetHTML(id){
+  const l=LEVELS[id];const r=store.levels[id];
+  return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+    <div class="n" style="font-size:12px;color:var(--muted);font-weight:600">УРОВЕНЬ ${id+1} ${r?'· лучший результат '+r.acc+'%':''}</div>
+    <h2>${l.i} ${l.t} <span class="hz" style="color:var(--red)">${l.z}</span></h2>
+    <div class="words">${l.words.map(w=>`<span class="chip hz" style="${isMastered(w)?'background:#e5f4ea':''}">${w.hz}</span>`).join('')}</div>
+    <div class="acts">
+      <button class="btn ghost" onclick="startStudy(${id})">📖 Карточки — сначала изучить</button>
+      <button class="btn" onclick="startLevelQuiz(${id})">🎯 Тест</button>
+      <button class="btn ghost small" onclick="closeSheet()">Закрыть</button>
+    </div></div></div>`;
+}
+function openSheet(id){sheet=id;render()}
+function closeSheet(){sheet=null;render()}
+function goHome(){if(TTS)speechSynthesis.cancel();screen='home';sheet=null;Q=null;S=null;render();window.scrollTo(0,0)}
+
+/* ---------- Изучение (флеш-карточки) ---------- */
+function startStudy(id){sheet=null;S={id,i:0,flip:false,words:LEVELS[id].words};screen='study';render();window.scrollTo(0,0)}
+function renderStudy(){
+  const w=S.words[S.i];const c=colorize(w);const st=store.settings;
+  app.innerHTML=`
+  <div class="qtop">
+    <button class="iconbtn" onclick="goHome()">← Назад</button>
+    <div class="bar"><i style="width:${(S.i+1)/S.words.length*100}%"></i></div>
+    <span class="kbd">${S.i+1}/${S.words.length}</span>
+  </div>
+  <div class="flash ${S.flip?'flipped':''}">
+    <div class="flash-inner" onclick="flip()">
+      <div class="face">
+        <div class="bighz hz">${w.hz}</div>
+        <div class="py">${st.showPinyin?c.py:''}</div>
+        <div class="tap">нажмите или пробел, чтобы перевернуть</div>
+      </div>
+      <div class="face back">
+        <div class="bighz hz" style="font-size:clamp(44px,9vw,70px)">${c.hz}</div>
+        <div class="rv-py">${c.py}</div>
+        <div class="meaning">${meaningHTML(w)}</div>
+        <div style="max-width:560px;width:100%" onclick="event.stopPropagation()">${exampleHTML(w)}</div>
+      </div>
+    </div>
+  </div>
+  <div class="ctrl">
+    <button class="btn ghost" onclick="studyMove(-1)" ${S.i===0?'disabled':''}>← Пред.</button>
+    <div class="row" style="gap:8px">
+      <button class="iconbtn" onclick="speak('${w.hz}')">🔊</button>
+      <button class="iconbtn" onclick="speak('${w.hz}',0.5)" title="Медленно">🐢</button>
+    </div>
+    ${S.i<S.words.length-1?`<button class="btn ghost" onclick="studyMove(1)">След. →</button>`:`<button class="btn" onclick="startLevelQuiz(${S.id})">🎯 К тесту</button>`}
+  </div>`;
+}
+function flip(){S.flip=!S.flip;render();if(S.flip&&store.settings.autoAudio)speak(S.words[S.i].hz)}
+function studyMove(d){S.i=Math.max(0,Math.min(S.words.length-1,S.i+d));S.flip=false;render();if(store.settings.autoAudio)speak(S.words[S.i].hz)}
+
+/* ---------- Тест ---------- */
+function pickMode(){
+  const m=store.settings.mode;
+  if(m==='mixed'){const arr=['zh2m','m2zh','zh2m','m2zh'];if(TTS)arr.push('listen','listen');return arr[Math.floor(Math.random()*arr.length)]}
+  if(m==='listen'&&!TTS)return 'zh2m';
+  return m;
+}
+function startLevelQuiz(id){sheet=null;startQuiz(LEVELS[id].words,`${LEVELS[id].i} ${LEVELS[id].t}`,id)}
+function startReview(){startQuiz(dueWords().slice(0,20),'🔁 Повторение',null)}
+function startQuiz(words,title,levelId){
+  if(!words.length)return;
+  Q={items:shuffle(words.slice()).map(w=>({w,m:pickMode()})),i:0,title,levelId,first:{},answered:false,combo:0,maxCombo:0,xp:0,total:words.length,done:0,wrong:[]};
+  screen='quiz';render();window.scrollTo(0,0);autoPlayPrompt();
+}
+function autoPlayPrompt(){const it=Q&&Q.items[Q.i];if(it&&it.m==='listen'&&!Q.answered)setTimeout(()=>speak(it.w.hz),300)}
+function modeHint(m){return {zh2m:'Что означает?',m2zh:'Выберите иероглифы',listen:'🎧 Что вы слышите?'}[m]}
+function renderQuiz(){
+  const it=Q.items[Q.i],w=it.w,st=store.settings;
+  if(!it.opts)it.opts=shuffle([w,...distractors(w,3)]);
+  const c=colorize(w);
+  let prompt='';
+  if(it.m==='zh2m'){prompt=`<div class="bighz hz">${Q.answered?c.hz:w.hz}</div><div class="py">${(st.showPinyin||Q.answered)?c.py:''}</div>`}
+  else if(it.m==='m2zh'){prompt=`<div class="meaning" style="font-size:28px">${meaningHTML(w)}</div>`}
+  else{prompt=`<button class="speak" onclick="speak('${w.hz}')">🔊</button><div class="subbtns"><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢 медленно</button></div>`}
+  const optLabel=o=>{
+    if(it.m==='zh2m')return meaningHTML(o);
+    const showPy=(it.m==='m2zh'&&st.showPinyin)||Q.answered;
+    return `<span class="hz">${o.hz}</span>${showPy?`<small>${o.py}${it.m==='listen'&&Q.answered?' · '+o.ru:''}</small>`:''}`;
+  };
+  const optCls=it.m==='zh2m'?'':'hzopt';
+  const opts=it.opts.map((o,k)=>{
+    let cls='opt '+optCls;
+    if(Q.answered){if(o===w)cls+=' right';else if(k===it.chosen)cls+=' wrong'}
+    return `<button class="${cls}" ${Q.answered?'disabled':''} onclick="answer(${k})"><span class="num">${k+1}</span>${optLabel(o)}</button>`;
+  }).join('');
+  let rv='';
+  if(Q.answered){
+    const ok=it.opts[it.chosen]===w;
+    rv=`<div class="reveal">
+      <div class="verdict ${ok?'ok':'no'}">${ok?['✓ Верно!','✓ 对了！','✓ 太棒了！','✓ 没错！'][Math.floor(Math.random()*4)]:'✗ Не совсем — слово вернётся чуть позже'}</div>
+      <div class="rv-head">
+        <div class="rv-hz hz">${c.hz}</div>
+        <div><div class="rv-py">${c.py}</div><div class="rv-m">${w.ru} <span class="en">· ${w.en}</span></div></div>
+        <div style="margin-left:auto" class="row"><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢</button></div>
+      </div>
+      ${exampleHTML(w)}
+      <div class="nextrow"><span class="kbd">Enter ↵</span><button class="btn" id="nextBtn" onclick="next()">Дальше →</button></div>
+    </div>`;
+  }
+  app.innerHTML=`
+  <div class="qtop">
+    <button class="iconbtn" onclick="goHome()">✕</button>
+    <div class="bar"><i style="width:${Q.done/Q.total*100}%"></i></div>
+    <span class="kbd">${Q.done}/${Q.total}</span>
+    <button class="iconbtn ${st.showPinyin?'on':''}" onclick="togglePinyin()" title="Пиньинь (P)">拼</button>
+  </div>
+  <div class="qcard">
+    <div class="qhint">${Q.title} · ${modeHint(it.m)}</div>
+    ${Q.combo>=3?`<div class="combo">🔥 ×${Q.combo}</div>`:''}
+    ${prompt}
+  </div>
+  <div class="opts">${opts}</div>
+  ${rv}`;
+  if(Q.answered){const b=document.getElementById('nextBtn');if(b&&window.innerWidth<700)b.scrollIntoView({behavior:'smooth',block:'end'})}
+}
+function togglePinyin(){store.settings.showPinyin=!store.settings.showPinyin;save();render()}
+function answer(k){
+  if(!Q||Q.answered)return;
+  const it=Q.items[Q.i];if(k>=it.opts.length)return;
+  const ok=it.opts[k]===it.w;
+  it.chosen=k;Q.answered=true;
+  const first=!(it.w.hz in Q.first);
+  if(first){Q.first[it.w.hz]=ok;srsUpdate(it.w,ok)}
+  if(ok){Q.done++;Q.combo++;Q.maxCombo=Math.max(Q.maxCombo,Q.combo);if(first)Q.xp+=10+(Q.combo>=3?5:0);else Q.xp+=3}
+  else{Q.combo=0;if(!Q.wrong.includes(it.w))Q.wrong.push(it.w);
+    const pos=Math.min(Q.i+3+Math.floor(Math.random()*2),Q.items.length);
+    Q.items.splice(pos,0,{w:it.w,m:it.m==='listen'?'listen':(it.m==='zh2m'?'m2zh':'zh2m')});}
+  render();
+  if(store.settings.autoAudio&&it.m!=='listen')speak(it.w.hz);
+  else if(it.m==='listen'&&!ok)speak(it.w.hz);
+}
+function next(){
+  if(!Q||!Q.answered)return;
+  Q.i++;Q.answered=false;
+  if(Q.i>=Q.items.length)return finish();
+  render();window.scrollTo(0,0);autoPlayPrompt();
+}
+function finish(){
+  const firstOk=Object.values(Q.first).filter(Boolean).length;
+  const acc=Math.round(firstOk/Q.total*100);
+  const st=acc>=90?3:acc>=75?2:acc>=50?1:0;
+  if(Q.levelId!==null){const prev=store.levels[Q.levelId]||{best:0,acc:0};store.levels[Q.levelId]={best:Math.max(prev.best,st),acc:Math.max(prev.acc,acc)}}
+  store.xp+=Q.xp;bumpStreak();save();
+  Q.result={acc,st,firstOk};screen='result';render();window.scrollTo(0,0);
+}
+function renderResult(){
+  const r=Q.result;const lid=Q.levelId;
+  const msg=r.st===3?'太棒了！Отлично!':r.st===2?'很好！Хорошо!':r.st===1?'不错，继续加油！Неплохо, продолжайте!':'加油！Попробуйте ещё раз';
+  const nextId=lid!==null&&lid<LEVELS.length-1?lid+1:null;
+  app.innerHTML=`
+  <div class="panel result">
+    <div class="kbd">${Q.title}</div>
+    <div class="bigstars">${stars(r.st,'').replace('class=""','')}</div>
+    <div class="big">${r.acc}%</div>
+    <div style="font-weight:600">${msg}</div>
+    <div class="row" style="justify-content:center;margin-top:10px;gap:8px">
+      <span class="stat">С первой попытки: <b>${r.firstOk}/${Q.total}</b></span>
+      <span class="stat">⭐ +<b>${Q.xp}</b> XP</span>
+      <span class="stat">🔥 Лучшая серия: <b>${Q.maxCombo}</b></span>
+    </div>
+    ${Q.wrong.length?`<div class="mlist"><div class="lbl" style="margin-top:14px">Слова с ошибками — попадут в повторение</div>
+      ${Q.wrong.map(w=>{const c=colorize(w);return `<div class="mitem"><div class="hz">${c.hz}</div><div class="info"><div>${c.py}</div><div style="color:var(--muted)">${w.ru} · ${w.en}</div></div><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button></div>`}).join('')}</div>`:''}
+    <div class="row" style="justify-content:center;margin-top:18px;gap:8px">
+      <button class="btn ghost" onclick="goHome()">К уровням</button>
+      ${lid!==null?`<button class="btn ghost" onclick="startLevelQuiz(${lid})">↻ Ещё раз</button>`:''}
+      ${nextId!==null?`<button class="btn" onclick="openNext(${nextId})">Уровень ${nextId+1} →</button>`:''}
+    </div>
+  </div>`;
+}
+function openNext(id){screen='home';Q=null;sheet=id;render();window.scrollTo(0,0)}
+
+/* ---------- Клавиатура ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const k=e.key.toLowerCase();
+  if(screen==='quiz'&&Q){
+    if(/^[1-4]$/.test(k)&&!Q.answered){answer(+k-1);e.preventDefault()}
+    else if((k==='enter'||k===' ')&&Q.answered){next();e.preventDefault()}
+    else if(k==='p'||k==='з'){togglePinyin()}
+    else if(k==='r'||k==='к'){speak(Q.items[Q.i].w.hz)}
+    else if(k==='escape'){goHome()}
+  }else if(screen==='study'&&S){
+    if(k===' '||k==='enter'){flip();e.preventDefault()}
+    else if(k==='arrowright')studyMove(1);
+    else if(k==='arrowleft')studyMove(-1);
+    else if(k==='r'||k==='к')speak(S.words[S.i].hz);
+    else if(k==='escape')goHome();
+  }else if(screen==='home'&&sheet!==null&&k==='escape'){closeSheet()}
+  else if(screen==='result'&&k==='enter'){goHome()}
+});
+
+render();
+</script>
+</body>
+</html>
