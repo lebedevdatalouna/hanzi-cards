@@ -49,12 +49,33 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn.small{padding:7px 12px;font-size:13px}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
 .inp{flex:1;min-width:180px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff}
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:20px 0 12px}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:20px 0 12px}
 .tab{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px}
 .tab b{font-size:15px}.tab span{font-size:12px;color:var(--muted)}
 .tab.on{border-color:var(--red);box-shadow:0 0 0 2px rgba(198,58,47,.15)}
 .tab.on b{color:var(--red)}
 @media(max-width:900px){.tabs{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.tabs{grid-template-columns:repeat(2,1fr)}.tab span{font-size:11px}}
+/* new modes */
+.sent{font-size:clamp(22px,4.5vw,30px);line-height:1.7;max-width:680px}
+.blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--red);color:transparent;margin:0 2px}
+.trl{color:var(--muted);font-size:15px;min-height:22px}
+.trl small{display:block;font-size:13px}
+.linkbtn{border:0;background:none;color:var(--muted);text-decoration:underline;font-size:13px;padding:0}
+.pyopt{font-size:24px;letter-spacing:.02em}
+.typebox{display:flex;gap:8px;margin:14px auto 0;max-width:520px}
+.typebox .inp{font-size:20px}
+.hwwrap{margin-top:14px}
+.hwbox{width:min(300px,78vw);height:min(300px,78vw);margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;touch-action:none;
+  background-image:linear-gradient(to right,transparent calc(50% - .5px),#eadfce calc(50% - .5px),#eadfce calc(50% + .5px),transparent calc(50% + .5px)),linear-gradient(to bottom,transparent calc(50% - .5px),#eadfce calc(50% - .5px),#eadfce calc(50% + .5px),transparent calc(50% + .5px)),linear-gradient(45deg,transparent calc(50% - .5px),#f1e8da calc(50% - .5px),#f1e8da calc(50% + .5px),transparent calc(50% + .5px)),linear-gradient(-45deg,transparent calc(50% - .5px),#f1e8da calc(50% - .5px),#f1e8da calc(50% + .5px),transparent calc(50% + .5px))}
+.hwanim{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.hwmini{width:110px;height:110px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.pair{border-top:1px dashed var(--line);padding:10px 0}
+.pairw{font-size:22px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pairw small{font-size:13px;color:var(--muted)}
+.vs{font-size:12px;color:var(--muted);margin:0 8px;font-family:inherit}
+.paire{font-size:14px;margin-top:4px;line-height:1.5}
+.iconbtn.tiny{padding:2px 6px;font-size:12px}
+.sheet{max-height:88vh;overflow:auto}
 /* levels */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
 .lvl{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;transition:.15s;position:relative;box-shadow:var(--shadow)}
@@ -2597,7 +2618,7 @@ const ALL = LEVELS.flatMap(l=>l.words);
 
 const LS_KEY='hanzi-cards-hsk45-v1';
 const DEF_SETTINGS={lang:'both',showPinyin:false,mode:'mixed',autoAudio:true,tab:'base'};
-const TABS=[['base','Базовый'],['ext','Расширенный'],['hsk5','HSK 5 · темы'],['hsk5b','HSK 5 · части речи'],['hsk4','HSK 4 · добор']];
+const TABS=[['base','Базовый'],['ext','Расширенный'],['hsk5','HSK 5 · темы'],['hsk5b','HSK 5 · части речи'],['hsk4','HSK 4 · добор'],['conf','Похожие слова']];
 let store={srs:{},levels:{},daily:{},xp:0,streak:{last:null,count:0},settings:{...DEF_SETTINGS}};
 try{const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(s){store=Object.assign(store,s);store.settings=Object.assign({...DEF_SETTINGS},s.settings||{});store.daily=store.daily||{};}}catch(e){}
 let storageOK=true;
@@ -2813,7 +2834,7 @@ function renderHome(){
 
   <div class="panel">
     <div class="row" style="gap:22px;align-items:flex-start">
-      <div><div class="lbl">Режим теста</div>${seg('mode',[['mixed','🎲 Микс'],['zh2m','汉 → смысл'],['m2zh','смысл → 汉'],['listen','🎧 Аудирование']])}</div>
+      <div style="max-width:100%"><div class="lbl">Режим теста</div>${seg('mode',[['mixed','🎲 Микс'],['zh2m','汉 → смысл'],['m2zh','смысл → 汉'],['listen','🎧 На слух'],['cloze','📝 Предложения'],['tone','🎵 Тоны'],['type','⌨️ Пиньинь'],['write','✍️ Письмо']])}</div>
       <div><div class="lbl">Перевод</div>${seg('lang',[['both','RU + EN'],['ru','RU'],['en','EN']])}</div>
       <div><div class="lbl">Подсказки</div>
         <div class="row" style="gap:16px">
@@ -2827,10 +2848,11 @@ function renderHome(){
     <div class="legend">Цвет тонов: <span class="t1">1-й ā</span><span class="t2">2-й á</span><span class="t3">3-й ǎ</span><span class="t4">4-й à</span><span class="t5">лёгкий</span> · Клавиши: 1–4 ответ, Enter — далее, P — пиньинь, R — озвучить</div>
   </div>
 
-  <div class="tabs">${TABS.map(([k,lab])=>{const ls=LEVELS.filter(l=>l.g===k);const ws=ls.flatMap(l=>l.words);
+  <div class="tabs">${TABS.map(([k,lab])=>{if(k==='conf')return `<button class="tab ${st.tab===k?'on':''}" onclick="setSetting('tab','conf')"><b>⚖️ ${lab}</b><span>${CONF_RAW.length} пар · ${CONF_SETS.filter(x=>store.levels['c'+x.id]).length}/${CONF_SETS.length} наборов</span></button>`;const ls=LEVELS.filter(l=>l.g===k);const ws=ls.flatMap(l=>l.words);
       return `<button class="tab ${st.tab===k?'on':''}" onclick="setSetting('tab','${k}')"><b>${lab}</b><span>уровни ${ls[0].id+1}–${ls[ls.length-1].id+1} · ${ws.filter(isStarted).length}/${ws.length} слов</span></button>`}).join('')}</div>
+  ${st.tab==='conf'?'<div class="note" style="margin:-4px 0 10px">Пары слов, которые легко перепутать. Сначала прочитайте объяснение, потом выбирайте нужное слово в предложениях.</div>':''}
   <div class="grid">
-    ${LEVELS.filter(l=>l.g===st.tab).map(l=>{const m=l.words.filter(isMastered).length;const sd=l.words.filter(isStarted).length;const best=(store.levels[l.id]||{}).best||0;
+    ${st.tab==='conf'?confCardsHTML():LEVELS.filter(l=>l.g===st.tab).map(l=>{const m=l.words.filter(isMastered).length;const sd=l.words.filter(isStarted).length;const best=(store.levels[l.id]||{}).best||0;
       return `<button class="lvl" onclick="openSheet(${l.id})">
         <div class="n">УРОВЕНЬ ${l.id+1}${l.id===rec?' · <span style="color:var(--red)">ДАЛЕЕ</span>':''}</div>
         <div class="ic">${l.i}</div>
@@ -2845,6 +2867,7 @@ function renderHome(){
 }
 
 function sheetHTML(id){
+  if(typeof id==='string')return confSheetHTML(+id.slice(1));
   const l=LEVELS[id];const r=store.levels[id];
   return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
     <div class="n" style="font-size:12px;color:var(--muted);font-weight:600">УРОВЕНЬ ${id+1} ${r?'· лучший результат '+r.acc+'%':''}</div>
@@ -2890,17 +2913,143 @@ function renderStudy(){
     <div class="row" style="gap:8px">
       <button class="iconbtn" onclick="speak('${w.hz}')">🔊</button>
       <button class="iconbtn" onclick="speak('${w.hz}',0.5)" title="Медленно">🐢</button>
+      <button class="iconbtn" onclick="hwAnimate('${w.hz}','hwAnim')" title="Порядок черт">✍️</button>
     </div>
     ${S.i<S.words.length-1?`<button class="btn ghost" onclick="studyMove(1)">След. →</button>`:`<button class="btn" onclick="startLevelQuiz(${S.id})">🎯 К тесту</button>`}
-  </div>`;
+  </div>
+  <div id="hwAnim" class="hwanim"></div>`;
 }
 function flip(){S.flip=!S.flip;render();if(S.flip&&store.settings.autoAudio)speak(S.words[S.i].hz)}
 function studyMove(d){S.i=Math.max(0,Math.min(S.words.length-1,S.i+d));S.flip=false;render();if(store.settings.autoAudio)speak(S.words[S.i].hz)}
 
+/* ---------- Похожие слова ---------- */
+const CONF_RAW=[
+{w:[['再','zài'],['又','yòu']],e:'再 — повтор в будущем («ещё раз сделаю»). 又 — повтор, который уже произошёл («опять, снова»).',q:[['他昨天迟到了，今天＿＿迟到了。','又','Вчера он опоздал, и сегодня опять опоздал.'],['你明天＿＿来吧。','再','Приходи завтра ещё раз.'],['这个菜真好吃，我想＿＿吃一碗。','再','Это блюдо такое вкусное, хочу съесть ещё одну миску.']]},
+{w:[['就','jiù'],['才','cái']],e:'就 — раньше или быстрее, чем ожидалось (часто с 了). 才 — позже или медленнее ожидаемого (обычно без 了).',q:[['他早上五点＿＿起床了。','就','Он встал уже в пять утра.'],['他十一点＿＿起床，太晚了。','才','Он встал только в одиннадцать — слишком поздно.'],['等了两个小时，车＿＿来。','才','Ждали два часа — только тогда пришёл автобус.']]},
+{w:[['有点儿','yǒudiǎnr'],['一点儿','yìdiǎnr']],e:'有点儿 стоит перед прилагательным: «слегка, немного» (обычно о неприятном). 一点儿 — после прилагательного или глагола: «чуть-чуть», в просьбах и сравнениях.',q:[['今天＿＿冷。','有点儿','Сегодня немного холодно.'],['请说慢＿＿。','一点儿','Говорите, пожалуйста, чуть медленнее.'],['我＿＿累，想休息。','有点儿','Я немного устал, хочу отдохнуть.']]},
+{w:[['了解','liǎojiě'],['理解','lǐjiě']],e:'了解 — знать, быть в курсе (фактов, ситуации, человека). 理解 — понимать смысл, чувства, мотивы; относиться с пониманием.',q:[['我完全＿＿你的心情。','理解','Я полностью понимаю твои чувства.'],['我想多＿＿一下这家公司的情况。','了解','Хочу побольше узнать об этой компании.']]},
+{w:[['经验','jīngyàn'],['经历','jīnglì']],e:'经验 — опыт как навык и знания («есть опыт работы»). 经历 — пережитые события, история жизни.',q:[['他有十年的工作＿＿。','经验','У него десять лет опыта работы.'],['这次旅行是一段难忘的＿＿。','经历','Эта поездка — незабываемое событие.']]},
+{w:[['曾经','céngjīng'],['已经','yǐjīng']],e:'曾经 — «когда-то» (было в прошлом, сейчас уже не так), часто с 过. 已经 — «уже» (результат актуален сейчас), часто с 了.',q:[['我＿＿在上海住过两年，现在住在北京。','曾经','Когда-то я два года жил в Шанхае, а сейчас живу в Пекине.'],['他＿＿走了，你来晚了。','已经','Он уже ушёл, ты опоздал.']]},
+{w:[['记得','jìde'],['记住','jìzhù']],e:'记得 — помнить (состояние памяти). 记住 — запомнить (результат; часто в просьбах).',q:[['你还＿＿我吗？','记得','Ты меня ещё помнишь?'],['请＿＿，明天早上八点集合。','记住','Запомните: завтра сбор в восемь утра.']]},
+{w:[['适合','shìhé'],['合适','héshì']],e:'适合 — глагол, после него дополнение: 适合你. 合适 — прилагательное: 很合适, без дополнения.',q:[['这个工作很＿＿你。','适合','Эта работа тебе очень подходит.'],['这双鞋大小正＿＿。','合适','Эти туфли как раз по размеру.']]},
+{w:[['及时','jíshí'],['按时','ànshí']],e:'及时 — вовремя, пока не поздно (своевременно). 按时 — в назначенное время, по расписанию.',q:[['请每天＿＿吃药。','按时','Принимайте лекарство каждый день по расписанию.'],['幸亏救护车来得很＿＿。','及时','Хорошо, что скорая приехала вовремя.']]},
+{w:[['安静','ānjìng'],['平静','píngjìng']],e:'安静 — тихо, без шума (о месте, людях). 平静 — спокойно, без волнения (о душе, жизни, море).',q:[['图书馆里请保持＿＿。','安静','В библиотеке соблюдайте тишину.'],['听到这个消息，她的心情很难＿＿。','平静','Услышав эту новость, она долго не могла успокоиться.']]},
+{w:[['必须','bìxū'],['必需','bìxū']],e:'Звучат одинаково! 必须 — наречие «обязательно, нужно» перед глаголом. 必需 — прилагательное «необходимый» (必需品 — предметы первой необходимости).',q:[['你＿＿在周五之前交报告。','必须','Ты обязан сдать отчёт до пятницы.'],['水和食物是生活＿＿的。','必需','Вода и еда необходимы для жизни.']]},
+{w:[['参加','cānjiā'],['参观','cānguān']],e:'参加 — участвовать (в мероприятии, соревновании, собрании). 参观 — осматривать, посещать (музей, завод, выставку).',q:[['我们下午去＿＿博物馆。','参观','Днём мы идём в музей.'],['你明天＿＿比赛吗？','参加','Ты завтра участвуешь в соревновании?']]},
+{w:[['见面','jiànmiàn'],['看见','kànjiàn']],e:'见面 — встретиться; дополнения не берёт (跟他见面). 看见 — увидеть кого-то или что-то.',q:[['我们明天晚上在咖啡馆＿＿吧。','见面','Давай встретимся завтра вечером в кафе.'],['我刚才＿＿你女朋友了。','看见','Я только что видел твою девушку.']]},
+{w:[['发现','fāxiàn'],['发明','fāmíng']],e:'发现 — обнаружить то, что уже существовало. 发明 — изобрести что-то новое.',q:[['纸是中国人＿＿的。','发明','Бумагу изобрели китайцы.'],['我＿＿钱包不见了。','发现','Я обнаружил, что кошелёк пропал.']]},
+{w:[['权利','quánlì'],['权力','quánlì']],e:'Звучат одинаково! 权利 — право (на что-то): 受教育的权利. 权力 — власть, полномочия.',q:[['每个人都有受教育的＿＿。','权利','Каждый имеет право на образование.'],['他在公司里没有多大的＿＿。','权力','В компании у него не так много власти.']]},
+{w:[['纪录','jìlù'],['记录','jìlù']],e:'Звучат одинаково! 纪录 — рекорд (лучший результат). 记录 — записывать; запись, протокол.',q:[['她打破了世界＿＿。','纪录','Она побила мировой рекорд.'],['请把会议的内容＿＿下来。','记录','Пожалуйста, запишите содержание совещания.']]},
+{w:[['感动','gǎndòng'],['激动','jīdòng']],e:'感动 — растроганный; бывает переходным: 感动了我 («тронул меня»). 激动 — взволнованный, возбуждённый; дополнения не берёт.',q:[['他的故事＿＿了所有的人。','感动','Его история тронула всех.'],['比赛快开始了，球迷们都很＿＿。','激动','Матч вот-вот начнётся, болельщики в волнении.']]},
+{w:[['结果','jiéguǒ'],['后果','hòuguǒ']],e:'结果 — результат, итог (нейтрально). 后果 — последствия (обычно плохие).',q:[['考试的＿＿明天公布。','结果','Результаты экзамена объявят завтра.'],['酒后开车会造成严重的＿＿。','后果','Вождение в нетрезвом виде ведёт к тяжёлым последствиям.']]},
+{w:[['帮助','bāngzhù'],['帮忙','bāngmáng']],e:'帮助 — помогать кому-то, берёт дополнение: 帮助别人. 帮忙 — помочь, оказать услугу; без дополнения (帮个忙).',q:[['他经常＿＿别人。','帮助','Он часто помогает другим.'],['你忙不过来的话，我可以来＿＿。','帮忙','Если не справляешься, я могу прийти помочь.']]},
+{w:[['关心','guānxīn'],['担心','dānxīn']],e:'关心 — заботиться, проявлять участие. 担心 — беспокоиться, переживать (боясь плохого).',q:[['别＿＿，我会小心的。','担心','Не волнуйся, я буду осторожен.'],['谢谢你对我的＿＿。','关心','Спасибо за заботу обо мне.']]},
+{w:[['想念','xiǎngniàn'],['怀念','huáiniàn']],e:'想念 — скучать по человеку или месту (с надеждой на встречу). 怀念 — с ностальгией вспоминать прошлое или тех, кого уже нет.',q:[['我很＿＿你，你什么时候回来？','想念','Я так скучаю по тебе, когда ты вернёшься?'],['他写了一篇文章，＿＿去世的老师。','怀念','Он написал статью в память об ушедшем учителе.']]},
+{w:[['认识','rènshi'],['知道','zhīdao']],e:'认识 — быть знакомым (с человеком), знать (иероглиф, дорогу). 知道 — знать факт, информацию.',q:[['我＿＿他，他是我的同学。','认识','Я его знаю, он мой однокурсник.'],['我不＿＿他住在哪儿。','知道','Я не знаю, где он живёт.']]},
+{w:[['发生','fāshēng'],['产生','chǎnshēng']],e:'发生 — случиться, произойти (о событии). 产生 — возникнуть, появиться (интерес, чувство, проблема, идея).',q:[['昨天这里＿＿了一起交通事故。','发生','Вчера здесь произошла авария.'],['他对中国文化＿＿了很大的兴趣。','产生','У него появился большой интерес к китайской культуре.']]},
+{w:[['到达','dàodá'],['达到','dádào']],e:'到达 — прибыть (в место). 达到 — достичь (цели, уровня, стандарта).',q:[['火车下午三点＿＿北京。','到达','Поезд прибывает в Пекин в три часа дня.'],['他的汉语已经＿＿了五级水平。','达到','Его китайский уже достиг пятого уровня.']]},
+{w:[['改变','gǎibiàn'],['变化','biànhuà']],e:'改变 — изменить что-то (переходный глагол). 变化 — изменение; меняться (без дополнения).',q:[['这几年北京的＿＿很大。','变化','За эти годы Пекин сильно изменился.'],['这次旅行＿＿了我的想法。','改变','Эта поездка изменила мои взгляды.']]},
+];
+const CONF_SETS=[];for(let i=0;i<CONF_RAW.length;i+=5)CONF_SETS.push({id:i/5,pairs:CONF_RAW.slice(i,i+5)});
+const confPy=hz=>{for(const p of CONF_RAW)for(const [h,py] of p.w)if(h===hz)return py;return ''};
+function confCardsHTML(){
+  return CONF_SETS.map(s=>{const best=(store.levels['c'+s.id]||{}).best||0;
+    return `<button class="lvl" onclick="openConf(${s.id})">
+      <div class="n">НАБОР ${s.id+1}</div><div class="ic">⚖️</div>
+      <div class="t">Похожие слова · ${s.id+1}</div>
+      <div class="z hz" style="font-size:14px">${s.pairs.map(p=>p.w.map(x=>x[0]).join('/')).join(' · ')}</div>
+      <div class="meta" style="margin-top:10px"><span>${s.pairs.length} пар</span>${stars(best)}</div></button>`}).join('');
+}
+function openConf(id){sheet='c'+id;render()}
+function confSheetHTML(id){
+  const s=CONF_SETS[id];const r=store.levels['c'+id];
+  return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+    <div class="n" style="font-size:12px;color:var(--muted);font-weight:600">ПОХОЖИЕ СЛОВА · НАБОР ${id+1} ${r?'· лучший результат '+r.acc+'%':''}</div>
+    <h2>⚖️ Чем они отличаются</h2>
+    ${s.pairs.map(p=>`<div class="pair"><div class="pairw">${p.w.map(([h,py])=>`<span class="hz">${h}</span> <small>${py}</small> <button class="iconbtn tiny" onclick="speak('${h}')">🔊</button>`).join('<span class="vs">vs</span>')}</div><div class="paire">${p.e}</div></div>`).join('')}
+    <div class="acts" style="margin-top:14px">
+      <button class="btn" onclick="startConfQuiz(${id})">🎯 Тест: выбрать слово в предложении</button>
+      <button class="btn ghost small" onclick="closeSheet()">Закрыть</button>
+    </div></div></div>`;
+}
+function startConfQuiz(id){
+  sheet=null;const s=CONF_SETS[id];const items=[];
+  s.pairs.forEach((p,pi)=>p.q.forEach(([q,a,ru],qi)=>items.push({m:'conf',key:`c${id}-${pi}-${qi}`,q,a,ru,pair:p,opts:shuffle(p.w.map(x=>x[0])),w:findWordOr(a)})));
+  Q={kind:'conf',daily:false,items:shuffle(items),i:0,title:`⚖️ Похожие слова · ${id+1}`,levelId:'c'+id,first:{},answered:false,combo:0,maxCombo:0,xp:0,total:items.length,done:0,wrong:[],wrongConf:[]};
+  screen='quiz';render();window.scrollTo(0,0);
+}
+function findWordOr(hz){return ALL.find(w=>w.hz===hz)||{hz,py:confPy(hz),ru:'',en:'',ex:'',exru:'',lvl:0}}
+
+/* ---------- Пиньинь: тоны и ввод ---------- */
+const MARKS={a:'āáǎà',e:'ēéěè',i:'īíǐì',o:'ōóǒò',u:'ūúǔù','ü':'ǖǘǚǜ'};
+function stripTone(s){return s.normalize('NFD').replace(/[\u0300\u0301\u0304\u030C]/g,'').normalize('NFC')}
+function segOf(w){return segment(w.py,[...w.hz].filter(isHan).length)}
+function markSyl(base,t){
+  if(t===5)return base;let idx=-1;
+  if(base.includes('a'))idx=base.indexOf('a');else if(base.includes('e'))idx=base.indexOf('e');else if(base.includes('ou'))idx=base.indexOf('o');
+  else{for(let i=base.length-1;i>=0;i--)if('iouü'.includes(base[i])){idx=i;break}}
+  if(idx<0)return base;return base.slice(0,idx)+MARKS[base[idx]][t-1]+base.slice(idx+1);
+}
+function toneOptions(w){
+  const sg=segOf(w);if(!sg)return null;
+  const orig=sg.map(s=>s.t);if(!orig.some(t=>t!==5))return null;
+  const bases=sg.map(({a,b})=>stripTone(w.py.slice(a,b).toLowerCase()));
+  const build=ts=>{let out='',last=0;sg.forEach(({a,b},i)=>{out+=w.py.slice(last,a)+markSyl(bases[i],ts[i]);last=b});return out+w.py.slice(last)};
+  const correct=build(orig);const set=new Set([correct]);const free=orig.map((t,i)=>t!==5?i:-1).filter(i=>i>=0);
+  let guard=0;
+  while(set.size<4&&guard++<60){const ts=orig.slice();const i=free[Math.floor(Math.random()*free.length)];ts[i]=1+Math.floor(Math.random()*4);set.add(build(ts))}
+  while(set.size<4&&guard++<200){set.add(build(orig.map(t=>t===5?5:1+Math.floor(Math.random()*4))))}
+  return set.size<2?null:{correct,opts:shuffle([...set])};
+}
+function numericPy(py,sg){return sg.map(({a,b,t})=>stripTone(py.slice(a,b).toLowerCase())+(t===5?'':t)).join('')}
+function normTyped(s,n){
+  s=s.trim().toLowerCase().replace(/u:/g,'ü').replace(/v/g,'ü');
+  if(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(s)){const sg=segment(s,n);if(sg)return numericPy(s,sg)}
+  return s.replace(/[\s'’\-]/g,'').replace(/[05]/g,'');
+}
+function checkTyped(){
+  if(!Q||Q.answered)return;const it=Q.items[Q.i];const inp=document.getElementById('pyInput');if(!inp)return;
+  const val=inp.value;if(!val.trim()){inp.focus();return}
+  const sg=segOf(it.w);const n=sg.length;const want=numericPy(it.w.py,sg);const got=normTyped(val,n);
+  const loose=x=>x.replace(/ü/g,'u');
+  it.typed=val;it.letters=loose(want.replace(/\d/g,''))===loose(got.replace(/\d/g,''));
+  settle(got===want||loose(got)===loose(want));
+}
+
+/* ---------- Письмо иероглифов (Hanzi Writer, MIT) ---------- */
+let HW_P=null,hwState=null;
+function loadHW(){if(window.HanziWriter)return Promise.resolve();if(HW_P)return HW_P;
+  HW_P=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js';s.onload=res;s.onerror=()=>{HW_P=null;rej()};document.head.appendChild(s)});return HW_P}
+const hwLoader=(c,onLoad,onErr)=>fetch('https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/'+encodeURIComponent(c)+'.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(onLoad).catch(e=>onErr&&onErr(e));
+function hwFail(){const el=document.getElementById('hw');if(el)el.innerHTML='<div class="note" style="padding:20px">Не удалось загрузить данные для письма — нужен интернет.</div>'}
+function startWriting(){
+  const it=Q.items[Q.i];hwState={chars:[...it.w.hz].filter(isHan),i:0,mist:0,gaveUp:false,writer:null,item:it};
+  loadHW().then(hwChar).catch(hwFail);
+}
+function hwChar(){
+  const el=document.getElementById('hw');if(!el||!hwState||Q.items[Q.i]!==hwState.item)return;
+  el.innerHTML='';const size=el.clientWidth||260;const ch=hwState.chars[hwState.i];
+  const pr=document.getElementById('hwProg');if(pr)pr.textContent=hwState.chars.length>1?`иероглиф ${hwState.i+1} из ${hwState.chars.length}`:'';
+  const wr=HanziWriter.create(el,ch,{width:size,height:size,padding:12,showCharacter:false,showOutline:false,drawingWidth:26,strokeColor:'#2a2420',drawingColor:'#2a2420',highlightColor:'#e08600',outlineColor:'#e7ddcd',showHintAfterMisses:3,highlightOnComplete:true,charDataLoader:(c,a,b)=>hwLoader(c,a,()=>{b&&b();setTimeout(hwNext,0)})});
+  hwState.writer=wr;
+  wr.quiz({onComplete:s=>{if(!hwState)return;hwState.mist+=s.totalMistakes;setTimeout(hwNext,450)}});
+}
+function hwNext(){if(!hwState)return;hwState.i++;if(hwState.i<hwState.chars.length)hwChar();else{const n=hwState.chars.length,ok=!hwState.gaveUp&&hwState.mist<=n*2;hwState=null;settle(ok)}}
+function hwHint(){if(!hwState||!hwState.writer)return;hwState.mist+=2;hwState.writer.showOutline()}
+function hwGiveUp(){if(!hwState||!hwState.writer)return;hwState.gaveUp=true;const wr=hwState.writer;try{wr.cancelQuiz()}catch(e){}wr.showOutline();wr.animateCharacter({onComplete:()=>setTimeout(hwNext,500)})}
+function hwAnimate(hz,elId){
+  const el=document.getElementById(elId);if(!el)return;el.innerHTML='<span class="note">загрузка…</span>';
+  loadHW().then(()=>{el.innerHTML='';const chars=[...hz].filter(isHan);const ws=chars.map(c=>{const d=document.createElement('div');d.className='hwmini';el.appendChild(d);
+    return HanziWriter.create(d,c,{width:110,height:110,padding:6,showOutline:true,showCharacter:false,strokeAnimationSpeed:1.2,delayBetweenStrokes:250,strokeColor:'#c63a2f',outlineColor:'#eee3d3',charDataLoader:hwLoader})});
+    let i=0;const go=()=>{if(i<ws.length)ws[i++].animateCharacter({onComplete:()=>setTimeout(go,300)})};go();
+  }).catch(()=>{el.innerHTML='<span class="note">Нужен интернет для показа порядка черт</span>'});
+}
+
 /* ---------- Тест ---------- */
+const MODE_HINT={zh2m:'Что означает?',m2zh:'Выберите иероглифы',listen:'🎧 Что вы слышите?',cloze:'📝 Какое слово пропущено?',tone:'🎵 Какие тоны?',type:'⌨️ Напишите пиньинь с тонами',write:'✍️ Напишите иероглиф',conf:'⚖️ Какое слово подходит?'};
 function pickMode(){
   const m=store.settings.mode;
-  if(m==='mixed'){const arr=['zh2m','m2zh','zh2m','m2zh'];if(TTS)arr.push('listen','listen');return arr[Math.floor(Math.random()*arr.length)]}
+  if(m==='mixed'){const arr=['zh2m','m2zh','cloze','cloze','tone','m2zh'];if(TTS)arr.push('listen','listen');return arr[Math.floor(Math.random()*arr.length)]}
   if(m==='listen'&&!TTS)return 'zh2m';
   return m;
 }
@@ -2908,43 +3057,68 @@ function startLevelQuiz(id){sheet=null;startQuiz(LEVELS[id].words,`${LEVELS[id].
 function startReview(){startQuiz(dueWords().slice(0,20),'🔁 Повторение',null)}
 function startQuiz(words,title,levelId,daily){
   if(!words.length)return;
-  Q={daily:!!daily,items:shuffle(words.slice()).map(w=>({w,m:pickMode()})),i:0,title,levelId,first:{},answered:false,combo:0,maxCombo:0,xp:0,total:words.length,done:0,wrong:[]};
+  Q={kind:'words',daily:!!daily,items:shuffle(words.slice()).map(w=>({w,m:pickMode()})),i:0,title,levelId,first:{},answered:false,combo:0,maxCombo:0,xp:0,total:words.length,done:0,wrong:[],wrongConf:[]};
   screen='quiz';render();window.scrollTo(0,0);autoPlayPrompt();
 }
-function autoPlayPrompt(){const it=Q&&Q.items[Q.i];if(it&&it.m==='listen'&&!Q.answered)setTimeout(()=>speak(it.w.hz),300)}
-function modeHint(m){return {zh2m:'Что означает?',m2zh:'Выберите иероглифы',listen:'🎧 Что вы слышите?'}[m]}
+function autoPlayPrompt(){const it=Q&&Q.items[Q.i];if(it&&(it.m==='listen'||it.m==='tone')&&!Q.answered)setTimeout(()=>speak(it.w.hz),300)}
+function prepItem(it){
+  if(it.ready)return;it.ready=true;const w=it.w;
+  if(it.m==='cloze'&&!(w.ex&&w.ex.includes(w.hz)))it.m='zh2m';
+  if((it.m==='type'||it.m==='tone')&&!segOf(w))it.m='zh2m';
+  if(it.m==='tone'){const t=toneOptions(w);if(!t){it.m='zh2m'}else{it.opts=t.opts;it.correct=t.correct}}
+  if(['zh2m','m2zh','listen','cloze'].includes(it.m))it.opts=shuffle([w,...distractors(w,3)]);
+}
+function isRight(it,o){return it.m==='tone'?o===it.correct:it.m==='conf'?o===it.a:o===it.w}
+const blankify=(s,hz)=>s.split(hz).join('<span class="blank">＿＿</span>');
 function renderQuiz(){
-  const it=Q.items[Q.i],w=it.w,st=store.settings;
-  if(!it.opts)it.opts=shuffle([w,...distractors(w,3)]);
+  const it=Q.items[Q.i];prepItem(it);const w=it.w,st=store.settings,A=Q.answered;
   const c=colorize(w);
-  let prompt='';
-  if(it.m==='zh2m'){prompt=`<div class="bighz hz">${Q.answered?c.hz:w.hz}</div><div class="py">${(st.showPinyin||Q.answered)?c.py:''}</div>`}
+  let prompt='',body='';
+  const sp=(t,r)=>`speak(${JSON.stringify(t).replace(/"/g,'&quot;')}${r?','+r:''})`;
+  if(it.m==='zh2m'){prompt=`<div class="bighz hz">${A?c.hz:w.hz}</div><div class="py">${(st.showPinyin||A)?c.py:''}</div>`}
   else if(it.m==='m2zh'){prompt=`<div class="meaning" style="font-size:28px">${meaningHTML(w)}</div>`}
-  else{prompt=`<button class="speak" onclick="speak('${w.hz}')">🔊</button><div class="subbtns"><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢 медленно</button></div>`}
+  else if(it.m==='listen'){prompt=`<button class="speak" onclick="speak('${w.hz}')">🔊</button><div class="subbtns"><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢 медленно</button></div>`}
+  else if(it.m==='cloze'){prompt=`<div class="sent hz">${A?w.ex.split(w.hz).join(`<mark>${w.hz}</mark>`):blankify(w.ex,w.hz)}</div><div class="trl">${A||it.showTr?w.exru:`<button class="linkbtn" onclick="Q.items[Q.i].showTr=true;render()">показать перевод</button>`}</div>`}
+  else if(it.m==='tone'){prompt=`<div class="bighz hz">${A?c.hz:w.hz}</div><div class="subbtns"><button class="iconbtn" onclick="speak('${w.hz}')">🔊 ещё раз</button><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢</button></div>`}
+  else if(it.m==='type'){prompt=`<div class="bighz hz">${A?c.hz:w.hz}</div><div class="trl">${meaningHTML(w)}</div>`;
+    body=`<div class="typebox"><input id="pyInput" class="inp" placeholder="например: ni3hao3 или nǐhǎo" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" ${A?'disabled':''} value="${(it.typed||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter'){event.preventDefault();checkTyped()}"><button class="btn" onclick="checkTyped()" ${A?'disabled':''}>Проверить</button></div><div class="note" style="text-align:center">Цифра после слога — тон (1–4), лёгкий тон можно не писать, ü = v</div>`}
+  else if(it.m==='write'){prompt=`<div class="meaning" style="font-size:24px">${meaningHTML(w)}</div><div class="py">${c.py}</div>`;
+    body=A?'':`<div class="hwwrap"><div id="hw" class="hwbox"></div><div id="hwProg" class="note" style="text-align:center"></div><div class="subbtns"><button class="iconbtn" onclick="hwHint()">💡 подсказка</button><button class="iconbtn" onclick="hwGiveUp()">🙈 не помню</button><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button></div></div>`}
+  else if(it.m==='conf'){prompt=`<div class="sent hz">${A?it.q.replace('＿＿',`<mark>${it.a}</mark>`):it.q.replace('＿＿','<span class="blank">＿＿</span>')}</div><div class="trl">${A||it.showTr?it.ru:`<button class="linkbtn" onclick="Q.items[Q.i].showTr=true;render()">показать перевод</button>`}</div>`}
   const optLabel=o=>{
     if(it.m==='zh2m')return meaningHTML(o);
-    const showPy=(it.m==='m2zh'&&st.showPinyin)||Q.answered;
-    return `<span class="hz">${o.hz}</span>${showPy?`<small>${o.py}${it.m==='listen'&&Q.answered?' · '+o.ru:''}</small>`:''}`;
+    if(it.m==='tone')return `<span class="pyopt">${o}</span>`;
+    if(it.m==='conf')return `<span class="hz">${o}</span>${(st.showPinyin||A)?`<small>${confPy(o)}</small>`:''}`;
+    const showPy=((it.m==='m2zh'||it.m==='cloze')&&st.showPinyin)||A;
+    return `<span class="hz">${o.hz}</span>${showPy?`<small>${o.py}${(it.m==='listen'||it.m==='cloze')&&A?' · '+o.ru:''}</small>`:''}`;
   };
-  const optCls=it.m==='zh2m'?'':'hzopt';
-  const opts=it.opts.map((o,k)=>{
-    let cls='opt '+optCls;
-    if(Q.answered){if(o===w)cls+=' right';else if(k===it.chosen)cls+=' wrong'}
-    return `<button class="${cls}" ${Q.answered?'disabled':''} onclick="answer(${k})"><span class="num">${k+1}</span>${optLabel(o)}</button>`;
-  }).join('');
+  if(it.opts){const optCls=it.m==='zh2m'||it.m==='tone'?'':'hzopt';
+    body=`<div class="opts">${it.opts.map((o,k)=>{let cls='opt '+optCls;if(A){if(isRight(it,o))cls+=' right';else if(k===it.chosen)cls+=' wrong'}
+      return `<button class="${cls}" ${A?'disabled':''} onclick="answer(${k})"><span class="num">${k+1}</span>${optLabel(o)}</button>`}).join('')}</div>`}
   let rv='';
-  if(Q.answered){
-    const ok=it.opts[it.chosen]===w;
-    rv=`<div class="reveal">
-      <div class="verdict ${ok?'ok':'no'}">${ok?['✓ Верно!','✓ 对了！','✓ 太棒了！','✓ 没错！'][Math.floor(Math.random()*4)]:'✗ Не совсем — слово вернётся чуть позже'}</div>
-      <div class="rv-head">
-        <div class="rv-hz hz">${c.hz}</div>
-        <div><div class="rv-py">${c.py}</div><div class="rv-m">${w.ru} <span class="en">· ${w.en}</span></div></div>
-        <div style="margin-left:auto" class="row"><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢</button></div>
-      </div>
-      ${exampleHTML(w)}
-      <div class="nextrow"><span class="kbd">Enter ↵</span><button class="btn" id="nextBtn" onclick="next()">Дальше →</button></div>
-    </div>`;
+  if(A){
+    const ok=it.ok;
+    const verdict=ok?['✓ Верно!','✓ 对了！','✓ 太棒了！','✓ 没错！'][Math.floor(Math.random()*4)]:(it.m==='conf'?'✗ Не совсем — вопрос вернётся чуть позже':'✗ Не совсем — слово вернётся чуть позже');
+    let extra='';
+    if(it.m==='type'&&!ok)extra=`<div class="note">Вы написали: <b>${(it.typed||'').replace(/[<>&]/g,'')}</b> · правильно: <b>${numericPy(w.py,segOf(w))}</b>${it.letters?' — буквы верные, ошиблись в тонах':''}</div>`;
+    if(it.m==='conf'){
+      rv=`<div class="reveal"><div class="verdict ${ok?'ok':'no'}">${verdict}</div>
+        <div class="pairw">${it.pair.w.map(([h,py])=>`<span class="hz">${h}</span> <small>${py}</small>`).join('<span class="vs">vs</span>')}</div>
+        <div class="paire">${it.pair.e}</div>
+        <div class="nextrow"><span class="kbd">Enter ↵</span><button class="btn" id="nextBtn" onclick="next()">Дальше →</button></div></div>`;
+    }else{
+      rv=`<div class="reveal">
+        <div class="verdict ${ok?'ok':'no'}">${verdict}</div>${extra}
+        <div class="rv-head">
+          <div class="rv-hz hz">${c.hz}</div>
+          <div><div class="rv-py">${c.py}</div><div class="rv-m">${w.ru} <span class="en">· ${w.en}</span></div></div>
+          <div style="margin-left:auto" class="row"><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button><button class="iconbtn" onclick="speak('${w.hz}',0.5)">🐢</button><button class="iconbtn" onclick="hwAnimate('${w.hz}','hwAnim')" title="Порядок черт">✍️</button></div>
+        </div>
+        <div id="hwAnim" class="hwanim"></div>
+        ${exampleHTML(w)}
+        <div class="nextrow"><span class="kbd">Enter ↵</span><button class="btn" id="nextBtn" onclick="next()">Дальше →</button></div>
+      </div>`;
+    }
   }
   app.innerHTML=`
   <div class="qtop">
@@ -2954,33 +3128,40 @@ function renderQuiz(){
     <button class="iconbtn ${st.showPinyin?'on':''}" onclick="togglePinyin()" title="Пиньинь (P)">拼</button>
   </div>
   <div class="qcard">
-    <div class="qhint">${Q.title} · ${modeHint(it.m)}</div>
+    <div class="qhint">${Q.title} · ${MODE_HINT[it.m]}</div>
     ${Q.combo>=3?`<div class="combo">🔥 ×${Q.combo}</div>`:''}
     ${prompt}
   </div>
-  <div class="opts">${opts}</div>
+  ${body}
   ${rv}`;
-  if(Q.answered){const b=document.getElementById('nextBtn');if(b&&window.innerWidth<700)b.scrollIntoView({behavior:'smooth',block:'end'})}
+  if(A){const b=document.getElementById('nextBtn');if(b&&window.innerWidth<700)b.scrollIntoView({behavior:'smooth',block:'end'});if(it.m==='write')hwAnimate(w.hz,'hwAnim')}
+  else if(it.m==='type'){const i=document.getElementById('pyInput');if(i)i.focus()}
+  else if(it.m==='write')startWriting();
 }
-function togglePinyin(){store.settings.showPinyin=!store.settings.showPinyin;save();render()}
+function togglePinyin(){if(Q&&Q.items[Q.i]&&Q.items[Q.i].m==='write'&&!Q.answered)return;store.settings.showPinyin=!store.settings.showPinyin;save();render()}
 function answer(k){
-  if(!Q||Q.answered)return;
-  const it=Q.items[Q.i];if(k>=it.opts.length)return;
-  const ok=it.opts[k]===it.w;
-  it.chosen=k;Q.answered=true;
-  const first=!(it.w.hz in Q.first);
-  if(first){Q.first[it.w.hz]=ok;srsUpdate(it.w,ok)}
-  if(ok){Q.done++;Q.combo++;Q.maxCombo=Math.max(Q.maxCombo,Q.combo);if(first)Q.xp+=10+(Q.combo>=3?5:0);else Q.xp+=3}
-  else{Q.combo=0;if(!Q.wrong.includes(it.w))Q.wrong.push(it.w);
+  if(!Q||Q.answered)return;const it=Q.items[Q.i];if(!it.opts||k>=it.opts.length)return;
+  it.chosen=k;settle(isRight(it,it.opts[k]));
+}
+function settle(ok){
+  const it=Q.items[Q.i];it.ok=ok;Q.answered=true;
+  const key=it.key||it.w.hz;const first=!(key in Q.first);
+  if(first){Q.first[key]=ok;if(it.m!=='conf')srsUpdate(it.w,ok)}
+  if(ok){Q.done++;Q.combo++;Q.maxCombo=Math.max(Q.maxCombo,Q.combo);Q.xp+=first?10+(Q.combo>=3?5:0)+(['type','write'].includes(it.m)?5:0):3}
+  else{Q.combo=0;
+    if(it.m==='conf'){if(!Q.wrongConf.includes(it.key))Q.wrongConf.push(it.key)}else if(!Q.wrong.includes(it.w))Q.wrong.push(it.w);
     const pos=Math.min(Q.i+3+Math.floor(Math.random()*2),Q.items.length);
-    Q.items.splice(pos,0,{w:it.w,m:it.m==='listen'?'listen':(it.m==='zh2m'?'m2zh':'zh2m')});}
+    const nm={zh2m:'m2zh',m2zh:'zh2m'}[it.m]||it.m;
+    Q.items.splice(pos,0,it.m==='conf'?{m:'conf',key:it.key,q:it.q,a:it.a,ru:it.ru,pair:it.pair,opts:shuffle(it.opts.slice()),w:it.w}:{w:it.w,m:nm});}
   render();
-  if(store.settings.autoAudio&&it.m!=='listen')speak(it.w.hz);
-  else if(it.m==='listen'&&!ok)speak(it.w.hz);
+  if(it.m==='cloze')speak(it.w.ex,0.85);
+  else if(it.m==='conf')speak(it.q.replace('＿＿',it.a),0.85);
+  else if(store.settings.autoAudio&&!['listen','tone'].includes(it.m))speak(it.w.hz);
+  else if(['listen','tone'].includes(it.m)&&!ok)speak(it.w.hz);
 }
 function next(){
   if(!Q||!Q.answered)return;
-  Q.i++;Q.answered=false;
+  Q.i++;Q.answered=false;hwState=null;
   if(Q.i>=Q.items.length)return finish();
   render();window.scrollTo(0,0);autoPlayPrompt();
 }
@@ -2995,9 +3176,11 @@ function finish(){
   if(sync.key)syncNow();
 }
 function renderResult(){
-  const r=Q.result;const lid=Q.levelId;
+  const r=Q.result;const lid=Q.levelId;const conf=Q.kind==='conf';
   const msg=r.st===3?'太棒了！Отлично!':r.st===2?'很好！Хорошо!':r.st===1?'不错，继续加油！Неплохо, продолжайте!':'加油！Попробуйте ещё раз';
-  const nextId=lid!==null&&lid<LEVELS.length-1?lid+1:null;
+  const cid=conf?+String(lid).slice(1):null;
+  const nextId=conf?(cid<CONF_SETS.length-1?cid+1:null):(lid!==null&&lid<LEVELS.length-1?lid+1:null);
+  const confWrong=conf?Q.wrongConf.map(k=>{const [ci,pi,qi]=k.slice(1).split('-').map(Number);const p=CONF_SETS[ci].pairs[pi];const [q,a,ru]=p.q[qi];return `<div class="mitem"><div class="info"><div class="hz" style="font-size:18px">${q.replace('＿＿',`<mark>${a}</mark>`)}</div><div style="color:var(--muted)">${ru}</div></div></div>`}).join(''):'';
   app.innerHTML=`
   <div class="panel result">
     <div class="kbd">${Q.title}</div>
@@ -3009,13 +3192,14 @@ function renderResult(){
       <span class="stat">⭐ +<b>${Q.xp}</b> XP</span>
       <span class="stat">🔥 Лучшая серия: <b>${Q.maxCombo}</b></span>
     </div>
-    <div class="note">Слова уровня добавлены в повторение. Полоска уровня заполняется постепенно: слово становится «выученным», когда вы правильно ответите на него в разные дни.</div>
+    ${conf?'':'<div class="note">Слова уровня добавлены в повторение. Полоска уровня заполняется постепенно: слово становится «выученным», когда вы правильно ответите на него в разные дни.</div>'}
+    ${confWrong?`<div class="mlist"><div class="lbl" style="margin-top:14px">Где были ошибки</div>${confWrong}</div>`:''}
     ${Q.wrong.length?`<div class="mlist"><div class="lbl" style="margin-top:14px">Слова с ошибками — попадут в повторение</div>
       ${Q.wrong.map(w=>{const c=colorize(w);return `<div class="mitem"><div class="hz">${c.hz}</div><div class="info"><div>${c.py}</div><div style="color:var(--muted)">${w.ru} · ${w.en}</div></div><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button></div>`}).join('')}</div>`:''}
     <div class="row" style="justify-content:center;margin-top:18px;gap:8px">
       <button class="btn ghost" onclick="goHome()">К уровням</button>
-      ${lid!==null?`<button class="btn ghost" onclick="startLevelQuiz(${lid})">↻ Ещё раз</button>`:''}
-      ${nextId!==null?`<button class="btn" onclick="openNext(${nextId})">Уровень ${nextId+1} →</button>`:''}
+      ${conf?`<button class="btn ghost" onclick="startConfQuiz(${cid})">↻ Ещё раз</button>`:lid!==null?`<button class="btn ghost" onclick="startLevelQuiz(${lid})">↻ Ещё раз</button>`:''}
+      ${nextId!==null?(conf?`<button class="btn" onclick="screen='home';Q=null;openConf(${nextId})">Набор ${nextId+1} →</button>`:`<button class="btn" onclick="openNext(${nextId})">Уровень ${nextId+1} →</button>`):''}
     </div>
   </div>`;
 }
@@ -3024,12 +3208,13 @@ function openNext(id){screen='home';Q=null;sheet=id;render();window.scrollTo(0,0
 /* ---------- Клавиатура ---------- */
 document.addEventListener('keydown',e=>{
   if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target&&e.target.tagName==='INPUT')return;
   const k=e.key.toLowerCase();
   if(screen==='quiz'&&Q){
     if(/^[1-4]$/.test(k)&&!Q.answered){answer(+k-1);e.preventDefault()}
     else if((k==='enter'||k===' ')&&Q.answered){next();e.preventDefault()}
     else if(k==='p'||k==='з'){togglePinyin()}
-    else if(k==='r'||k==='к'){speak(Q.items[Q.i].w.hz)}
+    else if((k==='r'||k==='к')&&!['type','conf'].includes(Q.items[Q.i].m)){speak(Q.items[Q.i].w.hz)}
     else if(k==='escape'){goHome()}
   }else if(screen==='study'&&S){
     if(k===' '||k==='enter'){flip();e.preventDefault()}
