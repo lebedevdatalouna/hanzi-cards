@@ -486,7 +486,9 @@ const LS_KEY='hanzi-cards-hsk45-v1';
 const DEF_SETTINGS={lang:'both',showPinyin:false,mode:'mixed',autoAudio:true};
 let store={srs:{},levels:{},xp:0,streak:{last:null,count:0},settings:{...DEF_SETTINGS}};
 try{const s=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(s){store=Object.assign(store,s);store.settings=Object.assign({...DEF_SETTINGS},s.settings||{});}}catch(e){}
-function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(store))}catch(e){}}
+let storageOK=true;
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(store));storageOK=localStorage.getItem(LS_KEY)!==null}catch(e){storageOK=false}}
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){storageOK=false}
 
 /* ================== ИНТЕРВАЛЬНОЕ ПОВТОРЕНИЕ (Лейтнер) ================== */
 const INTERVALS=[0,1,3,7,14,30,60]; // дни для коробок 0..6
@@ -494,11 +496,15 @@ const DAY=864e5;
 function srs(w){return store.srs[w.hz]}
 function srsUpdate(w,ok){
   const r=store.srs[w.hz]||{b:0,d:0,c:0,x:0};
-  if(ok){r.b=Math.min(r.b+1,6);r.c++;r.d=Date.now()+INTERVALS[r.b]*DAY;}
+  if(ok){r.c++;
+    // повышаем этап, только если слово новое или уже пора повторять (интервалы работают по дням)
+    if(r.b===0||r.d<=Date.now()){r.b=Math.min(r.b+1,6);r.d=Date.now()+INTERVALS[r.b]*DAY;}}
   else{r.b=0;r.x++;r.d=Date.now();}
   store.srs[w.hz]=r;save();
 }
-function isMastered(w){const r=srs(w);return r&&r.b>=3}
+function isMastered(w){const r=srs(w);return !!(r&&r.b>=3)}
+function isStarted(w){const r=srs(w);return !!(r&&r.c>0)}
+function levelProgress(l){return l.words.reduce((a,w)=>{const r=srs(w);return a+(r?(r.c>0?1:0)+Math.min(r.b,3):0)},0)/(l.words.length*4)}
 function dueWords(){const now=Date.now();return ALL.filter(w=>{const r=srs(w);return r&&r.d<=now}).sort((a,b)=>srs(a).b-srs(b).b)}
 
 /* ================== ПИНЬИНЬ И ТОНА ================== */
@@ -587,6 +593,7 @@ function renderHome(){
   <div class="top">
     <div class="brand"><div class="seal hz">汉</div><div><h1>汉字卡片 · Карточки</h1><p>Лексика HSK 4–5 · ${LEVELS.length} уровней · ${ALL.length} слов</p></div></div>
     <div class="stats">
+      <span class="stat">✏️ Изучается <b>${ALL.filter(isStarted).length}</b></span>
       <span class="stat">📚 Выучено <b>${mastered}</b>/${ALL.length}</span>
       <span class="stat">⭐ <b>${store.xp}</b> XP</span>
       <span class="stat">🔥 <b>${currentStreak()}</b> дн.</span>
@@ -609,22 +616,23 @@ function renderHome(){
         </div>
       </div>
     </div>
+    ${!storageOK?'<div class="note" style="color:var(--bad)">⚠️ Этот браузер не даёт сохранять прогресс (приватный режим или встроенный браузер мессенджера). Откройте ссылку в обычном Safari/Chrome.</div>':''}
     ${!TTS?'<div class="note">⚠️ Браузер не поддерживает озвучку — аудирование заменится обычным режимом.</div>':noZh?'<div class="note">⚠️ В системе не найден китайский голос — озвучка может звучать неправильно. Установите китайский язык/голос в настройках ОС или откройте в Chrome/Safari.</div>':''}
     <div class="legend">Цвет тонов: <span class="t1">1-й ā</span><span class="t2">2-й á</span><span class="t3">3-й ǎ</span><span class="t4">4-й à</span><span class="t5">лёгкий</span> · Клавиши: 1–4 ответ, Enter — далее, P — пиньинь, R — озвучить</div>
   </div>
 
   <div class="grid">
-    ${LEVELS.map(l=>{const m=l.words.filter(isMastered).length;const best=(store.levels[l.id]||{}).best||0;
+    ${LEVELS.map(l=>{const m=l.words.filter(isMastered).length;const sd=l.words.filter(isStarted).length;const best=(store.levels[l.id]||{}).best||0;
       return `<button class="lvl" onclick="openSheet(${l.id})">
         <div class="n">УРОВЕНЬ ${l.id+1}${l.id===rec?' · <span style="color:var(--red)">ДАЛЕЕ</span>':''}</div>
         <div class="ic">${l.i}</div>
         <div class="t">${l.t}</div>
         <div class="z hz">${l.z}</div>
-        <div class="bar"><i style="width:${m/l.words.length*100}%"></i></div>
-        <div class="meta"><span>${m}/${l.words.length} выучено</span>${stars(best)}</div>
+        <div class="bar"><i style="width:${levelProgress(l)*100}%"></i></div>
+        <div class="meta"><span>${sd?`${sd}/${l.words.length} изучается · ${m} выучено`:'не начат'}</span>${stars(best)}</div>
       </button>`}).join('')}
   </div>
-  <div class="footer">Прогресс сохраняется в этом браузере.</div>
+  <div class="footer">Прогресс сохраняется в этом браузере. Слово считается выученным после правильных ответов в разные дни (через 1 и 3 дня) — так работает интервальное повторение.</div>
   ${sheet!==null?sheetHTML(sheet):''}`;
 }
 
@@ -633,7 +641,7 @@ function sheetHTML(id){
   return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
     <div class="n" style="font-size:12px;color:var(--muted);font-weight:600">УРОВЕНЬ ${id+1} ${r?'· лучший результат '+r.acc+'%':''}</div>
     <h2>${l.i} ${l.t} <span class="hz" style="color:var(--red)">${l.z}</span></h2>
-    <div class="words">${l.words.map(w=>`<span class="chip hz" style="${isMastered(w)?'background:#e5f4ea':''}">${w.hz}</span>`).join('')}</div>
+    <div class="words">${l.words.map(w=>`<span class="chip hz" style="${isMastered(w)?'background:#cfeedb':isStarted(w)?'background:#fbeac4':''}">${w.hz}</span>`).join('')}</div>
     <div class="acts">
       <button class="btn ghost" onclick="startStudy(${id})">📖 Карточки — сначала изучить</button>
       <button class="btn" onclick="startLevelQuiz(${id})">🎯 Тест</button>
@@ -791,6 +799,7 @@ function renderResult(){
       <span class="stat">⭐ +<b>${Q.xp}</b> XP</span>
       <span class="stat">🔥 Лучшая серия: <b>${Q.maxCombo}</b></span>
     </div>
+    <div class="note">Слова уровня добавлены в повторение. Полоска уровня заполняется постепенно: слово становится «выученным», когда вы правильно ответите на него в разные дни.</div>
     ${Q.wrong.length?`<div class="mlist"><div class="lbl" style="margin-top:14px">Слова с ошибками — попадут в повторение</div>
       ${Q.wrong.map(w=>{const c=colorize(w);return `<div class="mitem"><div class="hz">${c.hz}</div><div class="info"><div>${c.py}</div><div style="color:var(--muted)">${w.ru} · ${w.en}</div></div><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button></div>`}).join('')}</div>`:''}
     <div class="row" style="justify-content:center;margin-top:18px;gap:8px">
