@@ -106,6 +106,21 @@ kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;bo
   .stat{padding:5px 9px;font-size:13px;flex:1;text-align:center}
   .slab{display:none}
 }
+.syncbanner{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:2px solid #e9b44c;background:linear-gradient(135deg,#fff6df,#fdebd0);border-radius:16px;padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow)}
+.syncbanner:hover{border-color:var(--gold)}
+.sb-ic{font-size:30px}
+.sb-txt{flex:1;display:flex;flex-direction:column;gap:2px}
+.sb-txt b{font-size:15px}.sb-txt span{font-size:13px;color:#7a6650}
+.sb-go{font-weight:700;color:var(--red);white-space:nowrap;font-size:14px}
+.tipbtn{position:relative;cursor:help;font:inherit;color:inherit;border:1px solid var(--line);background:var(--card)}
+.tip{display:none;position:absolute;top:calc(100% + 8px);width:min(280px,82vw);background:#2a2420;color:#fff;font-size:13px;line-height:1.45;font-weight:400;text-align:left;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:30;white-space:normal;pointer-events:none}
+.tip b{color:#ffd48a}
+.tip::before{content:"";position:absolute;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#2a2420}
+.tip-l .tip{left:0}.tip-l .tip::before{left:18px}
+.tip-r .tip{right:0}.tip-r .tip::before{right:18px}
+.tipbtn.open .tip{display:block}
+@media(hover:hover){.tipbtn:hover .tip{display:block}}
+@media(max-width:700px){.syncbanner{gap:10px;padding:12px}.sb-go{display:none}.sb-txt span{font-size:12px}}
 /* new modes */
 .sent{font-size:clamp(22px,4.5vw,30px);line-height:1.7;max-width:680px}
 .blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--red);color:transparent;margin:0 2px}
@@ -2865,6 +2880,16 @@ const TAB_SCREENS=[['home','🏠','Сегодня'],['levels','📚','Уровн
 function tabbarHTML(){
   return `<nav class="tabbar">${TAB_SCREENS.map(([s,ic,lab])=>`<button class="tbtn ${screen===s?'on':''}" onclick="openScreen('${s}')"><span class="tic">${ic}${s==='settings'&&syncBadge()?`<i class="tbadge">${sync.status==='err'?'!':'☁'}</i>`:''}</span><span class="tlab">${lab}</span></button>`).join('')}</nav>`;
 }
+function statChip(side,ic,html,tip){return `<button class="stat tipbtn tip-${side}" onclick="toggleTip(event,this)">${ic} ${html}<span class="tip" role="tooltip">${tip}</span></button>`}
+function toggleTip(e,el){e.stopPropagation();const was=el.classList.contains('open');document.querySelectorAll('.tipbtn.open').forEach(x=>x.classList.remove('open'));if(!was)el.classList.add('open')}
+document.addEventListener('click',()=>document.querySelectorAll('.tipbtn.open').forEach(x=>x.classList.remove('open')));
+function syncBannerHTML(){
+  if(!SYNC_OK||sync.key)return '';
+  return `<button class="syncbanner" onclick="openScreen('settings');setTimeout(()=>{const i=document.getElementById('syncName');if(i){i.scrollIntoView({behavior:'smooth',block:'center'});i.focus()}},50)">
+    <span class="sb-ic">☁️</span>
+    <span class="sb-txt"><b>Синхронизация не включена</b><span>Прогресс хранится только на этом устройстве. Включите синхронизацию, чтобы заниматься и с телефона, и с компьютера — и не потерять прогресс.</span></span>
+    <span class="sb-go">Включить →</span></button>`;
+}
 function levelsTeaserHTML(){
   let rec=LEVELS.findIndex(l=>!(store.levels[l.id]&&store.levels[l.id].best>=2));if(rec<0)rec=0;
   const l=LEVELS[rec];const sd=l.words.filter(isStarted).length;const best=(store.levels[l.id]||{}).best||0;
@@ -2889,13 +2914,14 @@ function renderHome(){
   <div class="top">
     <div class="brand"><div class="seal hz">汉</div><div><h1>汉字卡片 · Карточки</h1><p>Лексика HSK 4–5 · ${LEVELS.length} уровня · ${ALL.length} слов</p></div></div>
     <div class="stats">
-      <span class="stat" title="Изучается">✏️ <span class="slab">Изучается </span><b>${ALL.filter(isStarted).length}</b></span>
-      <span class="stat" title="Выучено">📚 <span class="slab">Выучено </span><b>${mastered}</b><span class="slab">/${ALL.length}</span></span>
-      <span class="stat" title="Опыт">⭐ <b>${store.xp}</b> XP</span>
-      <span class="stat" title="Дней подряд">🔥 <b>${currentStreak()}</b> дн.</span>
+      ${statChip('l','✏️',`<span class="slab">Изучается </span><b>${ALL.filter(isStarted).length}</b>`,'<b>Изучается</b> — слова, на которые вы уже хотя бы раз ответили в тесте. Они попали в интервальное повторение и будут возвращаться к вам, пока не закрепятся.')}
+      ${statChip('l','📚',`<span class="slab">Выучено </span><b>${mastered}</b><span class="slab">/${ALL.length}</span>`,`<b>Выучено</b> — слова, которые вы правильно вспомнили несколько раз в разные дни (через 1 и 3 дня). Это уже долговременная память. Всего в игре ${ALL.length} слов.`)}
+      ${statChip('r','⭐',`<b>${store.xp}</b> XP`,'<b>Опыт (XP)</b> — +10 за правильный ответ с первой попытки, +5 за серию из 3 и более верных ответов подряд и за сложные режимы (пиньинь, письмо). Показывает, сколько вы позанимались.')}
+      ${statChip('r','🔥',`<b>${currentStreak()}</b> дн.`,'<b>Дней подряд</b> — сколько дней без перерыва вы занимаетесь. Пройдите сегодня хотя бы один тест или тренировку, чтобы серия не прервалась.')}
     </div>
   </div>
   ${!storageOK?'<div class="note" style="color:var(--bad);margin-bottom:12px">⚠️ Этот браузер не сохраняет прогресс — подробности в настройках.</div>':''}
+  ${syncBannerHTML()}
   ${dailyHTML()}
   ${levelsTeaserHTML()}
   <div class="panel review">
