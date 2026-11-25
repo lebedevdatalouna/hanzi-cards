@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор слов · HSK 3</title>
+<style>
+:root{--bg:#f6f1e8;--card:#fffdf8;--ink:#2a2420;--muted:#8a7e72;--line:#e7ddcd;--red:#c63a2f;--red-d:#a32c22;--good:#2e8b57;--good-bg:#e5f4ea;--bad:#c63a2f;--bad-bg:#fbe7e4;--gold:#d79b1d;--sel:#fff1cf;--sel-b:#e0a82a;--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.4;-webkit-font-smoothing:antialiased}
+.hz{font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:900px;margin:0 auto;padding:18px 14px 50px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.seal{width:46px;height:46px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:22px;box-shadow:var(--shadow);flex:none}
+.top h1{font-size:19px;margin:0}
+.top p{margin:0;color:var(--muted);font-size:13px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.btn{border:0;border-radius:12px;padding:11px 18px;font-weight:600;background:var(--red);color:#fff}
+.btn:hover{background:var(--red-d)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:#f1e9dc}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;font-size:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:13px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px}
+.bar{height:8px;background:#efe6d8;border-radius:99px;overflow:hidden;flex:1;min-width:120px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--red));transition:width .3s}
+/* board */
+.how{font-size:14px;margin:0 0 12px;color:var(--muted)}
+.board{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:10px}
+.colh{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:2px}
+.col{display:flex;flex-direction:column;gap:8px}
+.tile{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:12px 8px;min-height:56px;display:flex;align-items:center;justify-content:center;text-align:center;transition:transform .12s,background .15s,border-color .15s;box-shadow:0 1px 0 rgba(0,0,0,.03);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.tile:hover{border-color:#cdb99b}
+.tile.hzt{font-size:26px}
+.tile.pyt{font-size:18px}
+.tile.trt{font-size:14px;line-height:1.25}
+.tile.sel{background:var(--sel);border-color:var(--sel-b);transform:translateY(-2px)}
+.tile.ok{background:var(--good-bg);border-color:var(--good)}
+.tile.no{background:var(--bad-bg);border-color:var(--bad);animation:shake .35s}
+.tile.gone{opacity:0;transform:scale(.85);pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.tray{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:14px 0 0;padding:8px;border:2px dashed var(--line);border-radius:12px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+.tray .slot{padding:4px 10px;border-radius:8px;background:#f3ebde;color:var(--ink)}
+.tray .slot.empty{background:transparent;border:1px dashed #d8ccb8;color:var(--muted)}
+.tray .plus{color:var(--muted)}
+/* collected */
+.collected{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.cc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;animation:pop .25s ease;position:relative}
+.cc .h{font-size:26px}.cc .p{font-size:14px;color:var(--red)}.cc .t{font-size:13px;color:var(--muted)}
+.cc .sp{position:absolute;top:6px;right:6px;border:0;background:none;font-size:14px;padding:2px}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.h3{font-size:15px;font-weight:700;margin:0 0 10px}
+/* toast */
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2a2420;color:#fff;border-radius:12px;padding:10px 16px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9;animation:pop .2s}
+/* start/result */
+.center{text-align:center}
+.big{font-size:52px;margin:6px 0}
+.stars{font-size:38px;letter-spacing:4px;color:var(--gold)}
+.stars .off{color:#dccfbb}
+.seg{display:inline-flex;background:#f1e9dc;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:7px 12px;border-radius:8px;font-size:13px}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.wordlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0}
+.chip{background:#f3ebde;border-radius:8px;padding:3px 8px;font-size:17px}
+.mist{text-align:left;margin-top:12px}
+.mist .m{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.mist .m .hz{font-size:22px;min-width:56px}
+@media(max-width:560px){
+  .wrap{padding:14px 10px 40px}
+  .board{gap:6px;grid-template-columns:.9fr 1fr 1.2fr}
+  .tile{padding:10px 4px;min-height:52px;border-radius:10px}
+  .tile.hzt{font-size:22px}.tile.pyt{font-size:15px}.tile.trt{font-size:12.5px}
+}
+
+/* lessons */
+.overall{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+.lc{position:relative;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 12px 10px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;transition:box-shadow .15s,border-color .15s}
+@media(hover:hover){.lc:hover{border-color:#cdb99b;box-shadow:0 2px 4px rgba(60,40,20,.08),0 10px 26px rgba(60,40,20,.1)}}
+.lc .num{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.lc .lt{font-size:16px;line-height:1.3}
+.lc .lr{font-size:12.5px;color:var(--muted);line-height:1.3;flex:1}
+.lc .lf{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:12px;color:var(--muted)}
+.lc .st{color:var(--gold);letter-spacing:1px;font-size:14px}.lc .st .off{color:#dccfbb}
+.lc.next{border:2px solid var(--red);padding:11px 11px 9px}
+.lc .badge{position:absolute;top:-9px;right:10px;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px}
+.lc.done{background:#fbf8f1}
+.settings{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+@media(max-width:560px){.lgrid{grid-template-columns:1fr 1fr;gap:8px}.lc{padding:10px 9px 8px}.lc.next{padding:9px 8px 7px}.lc .lt{font-size:14.5px}.lc .lr{font-size:11.5px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+/* HSK 3 Standard Course, 20 уроков: слова + пиньинь, переводы на русский (имена собственные не включены) */
+const LESSONS=[{"n":1,"t":"周末你有什么打算","r":"Какие у тебя планы на выходные?","w":[["周末","zhōumò","выходные"],["打算","dǎsuàn","план; собираться"],["啊","a","частица: «да ну», «же» (подтверждение)"],["跟","gēn","с (кем-то), вместе с"],["一直","yìzhí","всё время, постоянно"],["游戏","yóuxì","игра"],["作业","zuòyè","домашнее задание"],["着急","zháojí","волноваться, нервничать"],["复习","fùxí","повторять (материал)"],["南方","nánfāng","юг, южные районы"],["北方","běifāng","север, северные районы"],["面包","miànbāo","хлеб"],["带","dài","брать с собой"],["地图","dìtú","карта"],["搬","bān","переносить; переезжать"]]},{"n":2,"t":"他什么时候回来","r":"Когда он вернётся?","w":[["腿","tuǐ","нога"],["疼","téng","болеть (о боли)"],["脚","jiǎo","ступня"],["树","shù","дерево"],["容易","róngyì","лёгкий, простой"],["难","nán","трудный"],["太太","tàitai","жена; госпожа"],["秘书","mìshū","секретарь"],["经理","jīnglǐ","менеджер, директор"],["办公室","bàngōngshì","офис, кабинет"],["辆","liàng","(счётн. для машин)"],["楼","lóu","здание; этаж"],["拿","ná","брать (в руки)"],["把","bǎ","(счётн. для предметов с ручкой)"],["伞","sǎn","зонт"],["胖","pàng","полный, толстый"],["其实","qíshí","на самом деле"],["瘦","shòu","худой"]]},{"n":3,"t":"桌子上放着很多饮料","r":"На столе много напитков","w":[["还是","háishi","или (в вопросе)"],["爬山","páshān","ходить в горы"],["小心","xiǎoxīn","осторожно, быть внимательным"],["条","tiáo","(счётн. для длинного: брюк, рек)"],["裤子","kùzi","брюки"],["记得","jìde","помнить"],["衬衫","chènshān","рубашка"],["元","yuán","юань"],["新鲜","xīnxiān","свежий"],["甜","tián","сладкий"],["只","zhǐ","только"],["放","fàng","класть, ставить"],["饮料","yǐnliào","напиток"],["或者","huòzhě","или (в утверждении)"],["舒服","shūfu","удобный, приятный"],["花","huā","тратить (деньги, время)"],["绿","lǜ","зелёный"]]},{"n":4,"t":"她总是笑着跟客人说话","r":"Она всегда с улыбкой говорит с клиентами","w":[["比赛","bǐsài","соревнование, матч"],["照片","zhàopiàn","фотография"],["年纪","niánjì","возраст"],["又","yòu","снова, опять"],["聪明","cōngming","умный"],["热情","rèqíng","радушный, приветливый"],["努力","nǔlì","стараться; старательный"],["总是","zǒngshì","всегда"],["回答","huídá","отвечать"],["站","zhàn","стоять"],["饿","è","голодный"],["超市","chāoshì","супермаркет"],["蛋糕","dàngāo","торт"],["角","jiǎo","цзяо (0,1 юаня)"],["年轻","niánqīng","молодой"],["认真","rènzhēn","серьёзный, добросовестный"],["客人","kèrén","гость, клиент"]]},{"n":5,"t":"我最近越来越胖了","r":"В последнее время я всё больше полнею","w":[["发烧","fāshāo","температура, жар"],["为","wèi","для, ради"],["照顾","zhàogù","заботиться, ухаживать"],["用","yòng","использовать"],["感冒","gǎnmào","простуда"],["季节","jìjié","время года"],["当然","dāngrán","конечно"],["春","chūn","весна"],["草","cǎo","трава"],["夏","xià","лето"],["裙子","qúnzi","юбка"],["最近","zuìjìn","в последнее время"],["越来越","yuèláiyuè","всё больше и больше"]]},{"n":6,"t":"怎么突然找不到了","r":"Почему вдруг не найти?","w":[["眼镜","yǎnjìng","очки"],["突然","tūrán","вдруг"],["离开","líkāi","уходить, покидать"],["清楚","qīngchu","ясный, чёткий"],["刚才","gāngcái","только что"],["帮忙","bāngmáng","помогать"],["特别","tèbié","особенно"],["讲","jiǎng","рассказывать, объяснять"],["明白","míngbai","понимать; понятный"],["锻炼","duànliàn","тренироваться"],["音乐","yīnyuè","музыка"],["公园","gōngyuán","парк"],["聊天","liáotiān","болтать"],["睡着","shuìzháo","заснуть"],["更","gèng","ещё более"]]},{"n":7,"t":"我跟她都认识五年了","r":"Мы знакомы уже пять лет","w":[["同事","tóngshì","коллега"],["以前","yǐqián","раньше"],["银行","yínháng","банк"],["久","jiǔ","долго"],["感兴趣","gǎn xìngqù","интересоваться"],["结婚","jiéhūn","пожениться"],["欢迎","huānyíng","приветствовать; добро пожаловать"],["迟到","chídào","опаздывать"],["半","bàn","половина"],["接","jiē","встречать (кого-то)"],["刻","kè","четверть часа"],["差","chà","без (… минут); не хватать"]]},{"n":8,"t":"你去哪儿我就去哪儿","r":"Куда ты, туда и я","w":[["又","yòu","снова, опять"],["满意","mǎnyì","довольный"],["电梯","diàntī","лифт"],["层","céng","этаж"],["害怕","hàipà","бояться"],["熊猫","xióngmāo","панда"],["见面","jiànmiàn","встречаться"],["安静","ānjìng","тихий, спокойный"],["可乐","kělè","кола"],["一会儿","yíhuìr","немного (времени)"],["马上","mǎshàng","сейчас же, сразу"],["洗手间","xǐshǒujiān","туалет"],["老","lǎo","старый"],["几乎","jīhū","почти"],["变化","biànhuà","изменение"],["健康","jiànkāng","здоровье; здоровый"],["重要","zhòngyào","важный"]]},{"n":9,"t":"她的汉语说得跟中国人一样好","r":"Она говорит по-китайски как китаянка","w":[["中文","Zhōngwén","китайский язык"],["班","bān","класс, группа"],["一样","yíyàng","одинаковый"],["最后","zuìhòu","в конце; последний"],["放心","fàngxīn","не волноваться"],["一定","yídìng","обязательно"],["担心","dānxīn","беспокоиться"],["比较","bǐjiào","сравнительно, довольно"],["了解","liǎojiě","знать, разбираться"],["先","xiān","сначала"],["中间","zhōngjiān","середина, между"],["参加","cānjiā","участвовать"],["影响","yǐngxiǎng","влиять; влияние"]]},{"n":10,"t":"数学比历史难多了","r":"Математика намного сложнее истории","w":[["个子","gèzi","рост"],["矮","ǎi","низкий (о росте)"],["历史","lìshǐ","история"],["体育","tǐyù","физкультура, спорт"],["数学","shùxué","математика"],["方便","fāngbiàn","удобный"],["自行车","zìxíngchē","велосипед"],["骑","qí","ехать верхом (на велосипеде)"],["旧","jiù","старый (о вещах)"],["换","huàn","менять"],["地方","dìfang","место"],["中介","zhōngjiè","агентство, посредник"],["主要","zhǔyào","главный, основной"],["环境","huánjìng","окружение, обстановка"],["附近","fùjìn","поблизости"]]},{"n":11,"t":"别忘了把空调关了","r":"Не забудь выключить кондиционер","w":[["图书馆","túshūguǎn","библиотека"],["借","jiè","брать или давать взаймы"],["词典","cídiǎn","словарь"],["还","huán","возвращать"],["灯","dēng","лампа, свет"],["会议","huìyì","совещание"],["结束","jiéshù","заканчиваться"],["忘记","wàngjì","забывать"],["空调","kōngtiáo","кондиционер"],["关","guān","закрывать, выключать"],["地铁","dìtiě","метро"],["双","shuāng","пара"],["筷子","kuàizi","палочки для еды"],["啤酒","píjiǔ","пиво"],["口","kǒu","глоток (счётн.); рот"],["瓶子","píngzi","бутылка"],["笔记本","bǐjìběn","ноутбук; тетрадь"],["电子邮件","diànzǐ yóujiàn","электронная почта"],["习惯","xíguàn","привычка; привыкнуть"]]},{"n":12,"t":"把重要的东西放在我这儿吧","r":"Оставь важные вещи у меня","w":[["太阳","tàiyáng","солнце"],["西","xī","запад"],["生气","shēngqì","сердиться"],["行李箱","xínglixiāng","чемодан"],["自己","zìjǐ","сам, себя"],["包","bāo","сумка"],["发现","fāxiàn","обнаружить"],["护照","hùzhào","паспорт"],["起飞","qǐfēi","взлетать"],["司机","sījī","водитель"],["教","jiāo","учить (кого-то)"],["画","huà","рисовать; картина"],["需要","xūyào","нуждаться"],["黑板","hēibǎn","классная доска"]]},{"n":13,"t":"我是走回来的","r":"Я вернулся пешком","w":[["终于","zhōngyú","наконец"],["爷爷","yéye","дедушка (по отцу)"],["礼物","lǐwù","подарок"],["奶奶","nǎinai","бабушка (по отцу)"],["遇到","yùdào","встретить (случайно)"],["一边","yìbiān","одновременно (一边…一边)"],["过去","guòqù","проходить; прошлое"],["一般","yìbān","обычно; обычный"],["愿意","yuànyì","хотеть, быть готовым"],["起来","qǐlai","вставать, подниматься"],["应该","yīnggāi","следует, должен"],["生活","shēnghuó","жизнь; жить"],["校长","xiàozhǎng","директор школы, ректор"],["坏","huài","плохой; сломанный"],["经常","jīngcháng","часто"]]},{"n":14,"t":"你把水果拿过来","r":"Принеси фрукты","w":[["打扫","dǎsǎo","убирать"],["干净","gānjìng","чистый"],["然后","ránhòu","потом, затем"],["冰箱","bīngxiāng","холодильник"],["洗澡","xǐzǎo","мыться"],["节目","jiémù","программа, передача"],["月亮","yuèliang","луна"],["像","xiàng","быть похожим"],["盘子","pánzi","тарелка"],["刮风","guāfēng","дует ветер"],["叔叔","shūshu","дядя"],["阿姨","āyí","тётя"],["故事","gùshi","история, рассказ"],["声音","shēngyīn","звук, голос"],["菜单","càidān","меню"],["简单","jiǎndān","простой"],["香蕉","xiāngjiāo","банан"]]},{"n":15,"t":"其他都没什么问题","r":"В остальном всё в порядке","w":[["留学","liúxué","учиться за границей"],["水平","shuǐpíng","уровень"],["提高","tígāo","повышать"],["练习","liànxí","упражнение; упражняться"],["完成","wánchéng","завершить"],["句子","jùzi","предложение"],["其他","qítā","другие, прочие"],["发","fā","отправлять"],["要求","yāoqiú","требование; требовать"],["注意","zhùyì","обращать внимание"],["上网","shàngwǎng","выходить в интернет"],["除了","chúle","кроме"],["新闻","xīnwén","новости"],["花","huā","цветок; тратить"],["极了","jí le","крайне, ужасно (после прил.)"],["节日","jiérì","праздник"],["举行","jǔxíng","проводить (мероприятие)"],["世界","shìjiè","мир"],["街道","jiēdào","улица"],["各","gè","каждый, различные"],["文化","wénhuà","культура"]]},{"n":16,"t":"我现在累得下了班就想睡觉","r":"Я так устаю, что после работы хочу только спать","w":[["城市","chéngshì","город"],["如果","rúguǒ","если"],["认为","rènwéi","считать (по мнению)"],["皮鞋","píxié","кожаные туфли"],["帽子","màozi","шапка, шляпа"],["长","zhǎng","расти"],["可爱","kě'ài","милый"],["米","mǐ","метр"],["公斤","gōngjīn","килограмм"],["鼻子","bízi","нос"],["头发","tóufa","волосы"],["检查","jiǎnchá","проверять"],["刷牙","shuāyá","чистить зубы"],["关系","guānxi","отношения, связь"],["别人","biérén","другие люди"],["词语","cíyǔ","слова и выражения"]]},{"n":17,"t":"谁都有办法看好你的“病”","r":"Любой может вылечить твою «болезнь»","w":[["请假","qǐngjià","отпроситься"],["一共","yígòng","всего, итого"],["邻居","línjū","сосед"],["后来","hòulái","потом, позже"],["爱好","àihào","хобби"],["办法","bànfǎ","способ"],["饱","bǎo","сытый"],["为了","wèile","ради, чтобы"],["决定","juédìng","решать; решение"],["选择","xuǎnzé","выбирать; выбор"],["冬天","dōngtiān","зима"],["必须","bìxū","обязательно, нужно"],["根据","gēnjù","согласно, на основе"],["情况","qíngkuàng","ситуация"],["口","kǒu","(счётн. для членов семьи); рот"],["渴","kě","хотеть пить"]]},{"n":18,"t":"我相信他们会同意的","r":"Я уверен, что они согласятся","w":[["向","xiàng","к, в сторону"],["万","wàn","десять тысяч"],["只","zhī","(счётн. для животных)"],["嘴","zuǐ","рот"],["动物","dòngwù","животное"],["段","duàn","отрезок, отрывок"],["不但…而且…","búdàn… érqiě…","не только…, но и…"],["有名","yǒumíng","известный"],["同意","tóngyì","соглашаться"],["相信","xiāngxìn","верить"],["关于","guānyú","о, относительно"],["机会","jīhuì","шанс, возможность"],["国家","guójiā","страна"],["种","zhǒng","вид, сорт"],["特点","tèdiǎn","особенность"],["奇怪","qíguài","странный"],["地","de","(частица наречия)"],["贵","guì","дорогой"],["不同","bùtóng","разный"]]},{"n":19,"t":"你没看出来吗","r":"Ты разве не заметил?","w":[["耳朵","ěrduo","ухо"],["脸","liǎn","лицо"],["短","duǎn","короткий"],["马","mǎ","лошадь"],["张","zhāng","(счётн. для плоских предметов)"],["位","wèi","(вежл. счётн. для людей)"],["蓝","lán","синий"],["秋天","qiūtiān","осень"],["过","guò","проводить (время), праздновать"],["鸟","niǎo","птица"],["哭","kū","плакать"],["黄河","Huáng Hé","Хуанхэ (Жёлтая река)"],["船","chuán","лодка, корабль"],["经过","jīngguò","проходить через"]]},{"n":20,"t":"我被他影响了","r":"Он на меня повлиял","w":[["照相机","zhàoxiàngjī","фотоаппарат"],["被","bèi","(показатель пассива)"],["难过","nánguò","грустить, переживать"],["东","dōng","восток"],["信用卡","xìnyòngkǎ","кредитная карта"],["关心","guānxīn","заботиться, интересоваться"],["只有…才…","zhǐyǒu… cái…","только если…, то…"],["成绩","chéngjì","оценки, результаты"],["碗","wǎn","миска, пиала"],["分","fēn","балл; минута"],["解决","jiějué","решать (проблему)"],["试","shì","пробовать"],["真正","zhēnzhèng","настоящий"],["多么","duōme","как же, насколько"]]}];
+let LESSON=null,WORDS=[];
+function useLesson(n){LESSON=LESSONS.find(l=>l.n===n);WORDS=LESSON.w.map(([hz,py,ru],id)=>({id,hz,py,ru}))}
+
+const LS='hsk3-constructor';
+let saved={mode:5,audio:true,res:{}};
+try{saved=Object.assign(saved,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
+try{const old=JSON.parse(localStorage.getItem('hsk3-l1-constructor')||'null');if(old&&old.best!=null&&!saved.res[1]){saved.res[1]={best:old.best,plays:1}}}catch(e){}
+function persist(){try{localStorage.setItem(LS,JSON.stringify(saved))}catch(e){}}
+const starsOf=acc=>acc>=90?3:acc>=70?2:acc>=40?1:0;
+const starHtml=n=>[0,1,2].map(i=>i<n?'★':'<span class="off">★</span>').join('');
+const nextLesson=()=>{const l=LESSONS.find(l=>!saved.res[l.n]);return l?l.n:null};
+const sub=()=>`HSK 3 · Урок ${LESSON.n}`;
+
+/* озвучка */
+const TTS='speechSynthesis' in window;let zhVoice=null;
+function loadV(){if(!TTS)return;const v=speechSynthesis.getVoices();zhVoice=v.find(x=>/zh[-_]CN/i.test(x.lang))||v.find(x=>/^zh/i.test(x.lang))||null}
+if(TTS){loadV();speechSynthesis.onvoiceschanged=loadV}
+function speak(t,r){if(!TTS||!saved.audio)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-CN';if(zhVoice)u.voice=zhVoice;u.rate=r||.85;speechSynthesis.speak(u)}catch(e){}}
+
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const app=document.getElementById('app');
+let G=null;
+
+function home(){
+  G=null;LESSON=null;scrollTo(0,0);
+  const doneN=LESSONS.filter(l=>saved.res[l.n]).length;const nx=nextLesson();
+  const totalStars=LESSONS.reduce((s,l)=>s+(saved.res[l.n]?starsOf(saved.res[l.n].best):0),0);
+  app.innerHTML=`
+  <div class="top"><div class="seal hz">拼</div><div><h1>Конструктор слов · HSK 3</h1><p>Standard Course · 20 уроков · собери иероглиф + пиньинь + перевод</p></div></div>
+  <div class="overall"><div class="bar"><i style="width:${doneN/LESSONS.length*100}%"></i></div><span class="muted">пройдено ${doneN}/${LESSONS.length}</span><span class="stat">★ ${totalStars}/${LESSONS.length*3}</span></div>
+  <div class="panel"><div class="settings">
+    <div><div class="muted" style="margin-bottom:6px">Слов на поле</div><div class="seg">${[[5,'Раундами по 4–7'],[0,'Весь урок сразу']].map(([v,l])=>`<button class="${saved.mode===v?'on':''}" onclick="saved.mode=${v};persist();home()">${l}</button>`).join('')}</div></div>
+    <label class="muted"><input type="checkbox" ${saved.audio?'checked':''} onchange="saved.audio=this.checked;persist()"> Озвучивать собранные слова</label>
+  </div></div>
+  <p class="muted" style="margin:0 0 14px">Уроки можно проходить в любом порядке. Красной рамкой отмечен следующий по порядку непройденный.</p>
+  <div class="lgrid">${LESSONS.map(l=>{const r=saved.res[l.n];const isNext=l.n===nx;
+    return `<button class="lc ${isNext?'next':''} ${r?'done':''}" onclick="openLesson(${l.n})">${isNext?'<span class="badge">дальше</span>':''}
+      <span class="num">УРОК ${l.n}</span><span class="lt hz">${l.t}</span><span class="lr">${l.r}</span>
+      <span class="lf"><span>${l.w.length} слов</span>${r?`<span class="st">${starHtml(starsOf(r.best))}</span>`:'<span>—</span>'}</span></button>`}).join('')}</div>
+`;
+}
+function planRounds(n){if(saved.mode===0)return [n];const k=Math.max(1,Math.round(n/5.5));const base=Math.floor(n/k),extra=n%k;return Array.from({length:k},(_,i)=>base+(i<extra?1:0))}
+const roundsLabel=n=>{const p=planRounds(n);return p.length===1?`все ${n} слов сразу`:`${p.length} раунда по ${[...new Set(p)].sort().join('–')} слов`.replace(/^(\d+) раунда/,(m,k)=>k>=5?`${k} раундов`:m)};
+function openLesson(n){
+  useLesson(n);G=null;scrollTo(0,0);const r=saved.res[n];
+  app.innerHTML=`
+  <div class="top"><div class="seal hz">拼</div><div><h1>Урок ${n} · <span class="hz">${LESSON.t}</span></h1><p>${LESSON.r}</p></div>
+    <button class="iconbtn" style="margin-left:auto" onclick="home()">← Уроки</button></div>
+  <div class="panel center">
+    <p style="margin:0 0 6px">Собери карточку из трёх частей: <b>иероглиф</b> + <b>пиньинь</b> + <b>перевод</b>.<br>Нажимай по одной плитке в каждом столбце — в любом порядке.</p>
+    <div class="wordlist">${WORDS.map(w=>`<span class="chip hz">${w.hz}</span>`).join('')}</div>
+    <div class="muted">${WORDS.length} слов · ${roundsLabel(WORDS.length)}</div>
+    ${r?`<div style="margin-top:10px"><span class="stars" style="font-size:24px">${starHtml(starsOf(r.best))}</span><div class="muted">Лучший результат: <b>${r.best}%</b> без ошибок · попыток: ${r.plays}</div></div>`:''}
+    <div style="margin-top:16px"><button class="btn" onclick="startGame()">Начать</button></div>
+  </div>`;
+}
+
+function startGame(){
+  const order=shuffle(WORDS.slice());
+  const rounds=[];let i=0;for(const s of planRounds(order.length)){rounds.push(order.slice(i,i+s));i+=s}
+  G={rounds,r:0,done:[],errWords:new Set(),firstErr:new Set(),mistakes:0,review:false,sel:{hz:null,py:null,ru:null},lock:false};
+  setupRound();
+}
+function setupRound(){
+  const ws=G.rounds[G.r];
+  G.cur=ws;G.left=new Set(ws.map(w=>w.id));
+  G.cols={hz:shuffle(ws.slice()),py:shuffle(ws.slice()),ru:shuffle(ws.slice())};
+  G.sel={hz:null,py:null,ru:null};G.collectedRound=[];
+  render();
+}
+const totalWords=()=>G.review?G.rounds.flat().length:WORDS.length;
+function render(){
+  const doneN=G.review?G.reviewDone:G.done.length;const total=totalWords();
+  const tile=(k,w)=>{const gone=!G.left.has(w.id);if(gone)return '';const sel=G.sel[k]===w.id;
+    const txt=k==='hz'?w.hz:k==='py'?w.py:w.ru;const cls=k==='hz'?'hzt hz':k==='py'?'pyt':'trt';
+    return `<button class="tile ${cls} ${sel?'sel':''} ${gone?'gone':''}" data-k="${k}" data-id="${w.id}" onclick="pick('${k}',${w.id})">${txt}</button>`};
+  const slot=(k,label)=>{const id=G.sel[k];if(id===null)return `<span class="slot empty">${label}</span>`;const w=WORDS[id];return `<span class="slot ${k==='hz'?'hz':''}">${k==='hz'?w.hz:k==='py'?w.py:w.ru}</span>`};
+  app.innerHTML=`
+  <div class="top"><div class="seal hz">拼</div><div><h1>${G.review?'Работа над ошибками':'Конструктор слов'}</h1><p>${sub()} · ${G.rounds.length>1?`раунд ${G.r+1} из ${G.rounds.length}`:G.review?'повторяем слова с ошибками':'все слова'}</p></div>
+    <button class="iconbtn" style="margin-left:auto" onclick="openLesson(LESSON.n)">✕</button></div>
+  <div class="row" style="margin-bottom:12px"><div class="bar"><i style="width:${doneN/total*100}%"></i></div><span class="muted">${doneN}/${total}</span><span class="stat">❌ ${G.mistakes}</span></div>
+  <div class="panel">
+    <p class="how">Выбери по одной плитке в каждом столбце. Собранная карточка уйдёт вниз.</p>
+    <div class="board">
+      <div><div class="colh">Иероглифы</div><div class="col">${G.cols.hz.map(w=>tile('hz',w)).join('')}</div></div>
+      <div><div class="colh">Пиньинь</div><div class="col">${G.cols.py.map(w=>tile('py',w)).join('')}</div></div>
+      <div><div class="colh">Перевод</div><div class="col">${G.cols.ru.map(w=>tile('ru',w)).join('')}</div></div>
+    </div>
+    <div class="tray">${slot('hz','иероглиф')}<span class="plus">+</span>${slot('py','пиньинь')}<span class="plus">+</span>${slot('ru','перевод')}</div>
+  </div>
+  ${G.collectedRound.length?`<div class="panel"><div class="h3">✅ Собрано в этом раунде</div><div class="collected">${G.collectedRound.map(id=>{const w=WORDS[id];return `<div class="cc"><button class="sp" onclick="speak('${w.hz}')">🔊</button><div class="h hz">${w.hz}</div><div class="p">${w.py}</div><div class="t">${w.ru}</div></div>`}).join('')}</div></div>`:''}`;
+}
+function pick(k,id){
+  if(G.lock||!G.left.has(id))return;
+  G.sel[k]=G.sel[k]===id?null:id;
+  if(G.sel.hz!==null&&G.sel.py!==null&&G.sel.ru!==null)return check();
+  render();
+}
+function check(){
+  const {hz,py,ru}=G.sel;G.lock=true;
+  const ok=hz===py&&py===ru;
+  const els=['hz','py','ru'].map(k=>document.querySelector(`.tile[data-k="${k}"][data-id="${G.sel[k]}"]`));
+  render();
+  const els2=['hz','py','ru'].map(k=>document.querySelector(`.tile[data-k="${k}"][data-id="${G.sel[k]}"]`));
+  els2.forEach(e=>e&&e.classList.remove('sel'));
+  if(ok){
+    els2.forEach(e=>e&&e.classList.add('ok'));
+    speak(WORDS[hz].hz);
+    setTimeout(()=>{
+      G.left.delete(hz);G.collectedRound.push(hz);
+      if(G.review)G.reviewDone++;else G.done.push(hz);
+      G.sel={hz:null,py:null,ru:null};G.lock=false;
+      if(G.left.size===0)return roundDone();
+      render();
+    },550);
+  }else{
+    G.mistakes++;
+    // ошибка засчитывается словам, которые перепутали: если два элемента совпадают, виноват третий
+    const ids=[hz,py,ru];const pairMatch=hz===py?ru:hz===ru?py:py===ru?hz:null;
+    (pairMatch!==null?[ids.find(x=>x!==pairMatch),pairMatch]:ids).forEach(x=>G.errWords.add(x));
+    els2.forEach(e=>e&&e.classList.add('no'));
+    setTimeout(()=>{G.sel={hz:null,py:null,ru:null};G.lock=false;render()},650);
+  }
+}
+function roundDone(){
+  if(G.r<G.rounds.length-1){toast(['Отлично! 太棒了！','Раунд собран! 很好！','Так держать! 加油！'][G.r%3]);G.r++;setTimeout(setupRound,500);return}
+  if(!G.review&&G.errWords.size){
+    // работа над ошибками: слова с ошибками (+ дополняем до 4 для честного выбора)
+    G.firstErr=new Set(G.errWords);G.firstMistakes=G.mistakes;
+    const err=[...G.errWords].map(id=>WORDS[id]);
+    let board=err.slice();if(board.length<4)board=board.concat(shuffle(WORDS.filter(w=>!G.errWords.has(w.id))).slice(0,4-board.length));
+    const size=Math.min(6,board.length);const rounds=[];for(let i=0;i<board.length;i+=size)rounds.push(board.slice(i,i+size));
+    if(rounds.length>1&&rounds[rounds.length-1].length<3){const last=rounds.pop();rounds[rounds.length-1]=rounds[rounds.length-1].concat(last)}
+    G.mainRounds=G.rounds.length;G.rounds=rounds;G.r=0;G.review=true;G.reviewDone=0;G.errWords=new Set();
+    toast('Теперь — работа над ошибками');setTimeout(setupRound,600);return;
+  }
+  finish();
+}
+function finish(){
+  const firstErr=G.review?G.firstErr:G.errWords;const mistakes=G.review?G.firstMistakes:G.mistakes;
+  const clean=WORDS.length-firstErr.size;const acc=Math.round(clean/WORDS.length*100);
+  const st=acc>=90?3:acc>=70?2:acc>=40?1:0;
+  const prev=saved.res[LESSON.n];const isBest=!prev||acc>prev.best;
+  saved.res[LESSON.n]={best:prev?Math.max(prev.best,acc):acc,plays:(prev?prev.plays:0)+1};persist();
+  const nx=nextLesson();const nxt=nx&&nx!==LESSON.n?nx:(LESSON.n<20?LESSON.n+1:null);
+  const stars=[0,1,2].map(i=>i<st?'★':'<span class="off">★</span>').join('');
+  app.innerHTML=`
+  <div class="top"><div class="seal hz">拼</div><div><h1>Готово!</h1><p>${sub()} · собрано карточек: ${WORDS.length}${isBest&&prev?' · новый рекорд!':''}</p></div></div>
+  <div class="panel center">
+    <div class="stars">${stars}</div>
+    <div class="big">${acc}%</div>
+    <div><b>${clean} из ${WORDS.length}</b> слов собрано без ошибок · ошибок всего: ${mistakes}</div>
+    ${firstErr.size?`<div class="mist"><div class="h3" style="margin-top:12px">Слова, которые путались</div>${[...firstErr].map(id=>{const w=WORDS[id];return `<div class="m"><span class="hz">${w.hz}</span><span style="color:var(--red)">${w.py}</span><span class="muted" style="flex:1">${w.ru}</span><button class="iconbtn" onclick="speak('${w.hz}')">🔊</button></div>`}).join('')}</div>`:'<p>Ни одной ошибки — 太棒了！</p>'}
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" onclick="home()">Все уроки</button><button class="btn ghost" onclick="startGame()">↻ Ещё раз</button>${nxt?`<button class="btn" onclick="openLesson(${nxt})">Урок ${nxt} →</button>`:''}</div>
+  </div>`;
+}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1400)}
+home();
+</script>
+</body>
+</html>
